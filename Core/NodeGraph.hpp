@@ -39,9 +39,11 @@ public:
     Node* getNode(QUuid uuid) const;
     Connection* getConnection(QUuid uuid) const;
     
-    QJsonObject jsonBegin() const;
-    QJsonObject jsonAddNode(QJsonObject json, QUuid nodeID) const;
-    QJsonObject jsonAddConnection(QJsonObject json, QUuid connectionId) const;
+    
+    void jsonSerializeNode(QJsonObject &json, QUuid nodeId) const;
+    void jsonSerializeConnection(QJsonObject &json, QUuid connectionId) const;
+    void jsonAddNode(QJsonArray &json, QUuid nodeId) const;
+    void jsonAddConnection(QJsonArray &json, QUuid connectionId) const;
     
 signals:
     void nodeMoved(QUuid, QPointF position) const;

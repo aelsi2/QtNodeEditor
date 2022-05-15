@@ -117,3 +117,26 @@ Connection* NodeGraph::getConnection(QUuid uuid) const
     if (!connections.contains(uuid)) return nullptr;
     return connections.value(uuid);
 }
+
+void NodeGraph::jsonSerializeNode(QJsonObject &json, QUuid nodeId) const
+{
+    if (!nodes.contains(nodeId)) return;
+    nodes.value(nodeId)->serialize(json);
+}
+
+void NodeGraph::jsonSerializeConnection(QJsonObject &json, QUuid connectionId) const
+{
+    if (!nodes.contains(connectionId)) return;
+}
+
+void NodeGraph::jsonAddNode(QJsonArray &json, QUuid nodeId) const
+{
+    if (!nodes.contains(nodeId)) return;
+    QJsonObject jsonNode;
+    nodes.value(nodeId)->serialize(jsonNode);
+    json.append(jsonNode);
+}
+void NodeGraph::jsonAddConnection(QJsonArray &json, QUuid connectionId) const
+{
+    
+}

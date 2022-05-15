@@ -1,10 +1,13 @@
 #include "Node.hpp"
 
-Node::Node(NodeGraph *graph, QPointF position, QUuid uuid)
-    : graph(graph), uuid(uuid), position(position) {}
+Node::Node(NodeGraph &graph, NodeType type, QPointF position, QUuid uuid)
+    : type(type), graph(graph), uuid(uuid), position(position) {}
+
+Node::Node(NodeGraph &graph, NodeType type)
+    : type(type), graph(graph), uuid(), position(0.0, 0.0) {}
 
 QUuid Node::getUuid() const { return uuid; }
-NodeGraph* Node::getGraph() const { return graph; }
+NodeGraph& Node::getGraph() const { return graph; }
 
 QMap<QUuid, Connection*>::const_iterator Node::connectionsConstBegin() const { return connections.constBegin(); }
 QMap<QUuid, Connection*>::const_iterator Node::connectionsConstEnd() const { return connections.constEnd(); }
@@ -66,6 +69,32 @@ ConnectAction Node::getConnectAction(PortID portId, QUuid otherNodeId, PortID ot
     return getPortDataType(portId) == otherdataType ? ConnectAction::Connect : ConnectAction::Nothing;
 }
 
+void Node::serialize(QJsonObject &json) const
+{
+    QJsonObject jsonPos;
+    QJsonObject jsonData;
+    
+    onDataSerialize(jsonData);
+    
+    json["uuid"] = uuid.toString();
+    jsonPos["x"] = position.x();
+    jsonPos["y"] = position.y();
+    json["position"] = jsonPos;
+    json["data"] = jsonData;
+    json["type"] = type;
+}
+
+void Node::deserialize(QJsonObject &json)
+{
+    QJsonValue jsonUuid = json["uuid"];
+    QJsonValue jsonPos = json["position"];
+    QJsonValue jsonX = jsonPos.toObject()["x"];
+    QJsonValue jsonY = jsonPos.toObject()["y"];
+    uuid = QUuid(jsonUuid.toString());
+    position.setX(jsonX.toDouble());
+    position.setY(jsonY.toDouble());
+}
+
 void Node::onConnectionAdded(QUuid connectionId, PortID portId, Connection *connection)
 {
     Q_UNUSED(connectionId)
@@ -77,4 +106,14 @@ void Node::onConnectionRemoved(QUuid connectionId, PortID portId)
 {
     Q_UNUSED(connectionId)
     Q_UNUSED(portId)
+}
+
+void Node::onDataSerialize(QJsonObject &json) const
+{
+    Q_UNUSED(json)
+}
+
+void Node::onDataDeserialize(QJsonObject &json)
+{
+    Q_UNUSED(json)
 }

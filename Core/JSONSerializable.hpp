@@ -1,11 +1,11 @@
 #pragma once
 
 #include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonArray>
 
-template <typename Context>
 class JSONSerializable
 {
-    virtual ~JSONSerializable() = default;
-    virtual QJsonObject Serialize() = 0;
-    virtual void Deserialize(QJsonObject, Context context) = 0;
+    virtual void serialize(QJsonObject &json) const = 0;
+    virtual void deserialize(QJsonObject &json)  = 0;
 };

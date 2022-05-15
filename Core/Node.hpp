@@ -15,17 +15,20 @@
 class NodeGraph;
 class Connection;
 
-class Node : public QObject
+class Node : public QObject, public JSONSerializable
 {
     Q_OBJECT  
 public:
-    Node(NodeGraph *graph, QPointF position, QUuid uuid);
+    Node(NodeGraph &graph, NodeType type, QPointF position, QUuid uuid);
+    Node(NodeGraph &graph, NodeType type);
     
     bool hasConnections() const;
     void updatePosition(QPointF newPosition);
     void addConnection(QUuid connectionId, PortID portId, Connection *connection);
     void removeConnection(QUuid connectionId, PortID portId);
     void removeConnection(QUuid connectionId); //Should only be used before the connection object gets deleted
+    void serialize(QJsonObject &json) const override;
+    void deserialize(QJsonObject &json) override;
     
     //Intended to be overriden but some default implementations are provided
     virtual PortDataType getPortDataType(PortID portId) const;
@@ -37,15 +40,19 @@ public:
     QMap<QUuid, Connection*>::const_iterator connectionsConstEnd() const;
     
     QUuid getUuid() const;
-    NodeGraph* getGraph() const;
+    NodeGraph& getGraph() const;
+    
+    const NodeType type;
     
 protected:
     //Called when the corresponding public methods are called (after the changes)
     virtual void onConnectionAdded(QUuid connectionId, PortID portId, Connection *connection);
     virtual void onConnectionRemoved(QUuid connectionId, PortID portId);
+    virtual void onDataSerialize(QJsonObject &json) const;
+    virtual void onDataDeserialize(QJsonObject &json);
     
     QMap<QUuid, Connection*> connections;
-    NodeGraph* graph;
+    NodeGraph &graph;
     QUuid uuid;
     QPointF position;
 };
