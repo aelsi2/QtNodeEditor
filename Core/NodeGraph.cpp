@@ -1,6 +1,6 @@
 #include "NodeGraph.hpp"
 
-NodeGraph::NodeGraph(NodeFactory *nodeFactory) : factory(nodeFactory) {}
+NodeGraph::NodeGraph(NodeFactory *nodeFactory) : nodeFactory(nodeFactory) {}
 
 void NodeGraph::updateNodePosition(QUuid uuid, QPointF newPosition)
 {
@@ -12,7 +12,7 @@ void NodeGraph::updateNodePosition(QUuid uuid, QPointF newPosition)
 QUuid NodeGraph::createNode(NodeType type, QPointF position, QUuid uuid)
 {
     if (nodes.contains(uuid)) return uuid;
-    Node *node = factory->createNode(type, this, position, uuid);
+    Node *node = nodeFactory->createNode(type, this, position, uuid);
     nodes.insert(uuid, node);
     emit nodeCreated(type, uuid, node, position);
     return uuid;
@@ -35,6 +35,7 @@ void NodeGraph::deleteNode(QUuid uuid)
     nodes.remove(uuid);
     delete node;
     emit nodeDeleted(uuid);
+    return;
 }
 
 bool NodeGraph::connectable(QUuid nodeIdA, QUuid nodeIdB, 
@@ -52,6 +53,19 @@ bool NodeGraph::connectable(QUuid nodeIdA, QUuid nodeIdB,
     if (!nodeA->connectable(portIdA, nodeIdB, portIdB, portTypeB)) return false;
     if (!nodeB->connectable(portIdB, nodeIdA, portIdA, portTypeA)) return false;
     return true;
+}
+
+ConnectAction::Pair NodeGraph::getConnectActions(QUuid nodeIdA, QUuid nodeIdB, PortID portIdA, PortID portIdB) const
+{
+    if (!nodes.contains(nodeIdA) || !nodes.contains(nodeIdB)) return ConnectAction::Pair{ConnectAction::Nothing, ConnectAction::Nothing};
+     Node *nodeA = nodes.value(nodeIdA);
+     Node *nodeB = nodes.value(nodeIdB);
+     PortDataType portTypeA = nodeA->getPortDataType(portIdA);
+     PortDataType portTypeB = nodeB->getPortDataType(portIdB);
+     return ConnectAction::Pair{
+         nodeA->getConnectAction(portIdA, nodeIdB, portIdB, portTypeB),
+         nodeB->getConnectAction(portIdB, nodeIdA, portIdA, portTypeA)
+     };
 }
 
 void NodeGraph::connect(QUuid nodeIdA, QUuid nodeIdB, 

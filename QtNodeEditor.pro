@@ -9,10 +9,11 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Controller/GraphController.cpp \
+    Core/ConnectAction.cpp \
     Core/Connection.cpp \
-    Core/ConnectionAction.cpp \
     Core/Node.cpp \
-    Controller/NodeFactory.cpp \
+    Core/NodeFactory.cpp \
     Controller/NodeGraphUndoCommands.cpp \
     Utils/Port.cpp \
     Utils/PortPolicy.cpp \
@@ -25,10 +26,11 @@ SOURCES += \
     Core/NodeGraph.cpp
 
 HEADERS += \
+    Controller/GraphController.hpp \
+    Core/ConnectAction.hpp \
     Core/Connection.hpp \
-    Core/ConnectionAction.hpp \
     Core/Node.hpp \
-    Controller/NodeFactory.hpp \
+    Core/NodeFactory.hpp \
     Controller/NodeGraphUndoCommands.hpp \
     Core/NodeType.hpp \
     Core/PortUtils.hpp \

@@ -9,7 +9,7 @@
 #include "NodeGraph.hpp"
 #include "Connection.hpp"
 #include "PortUtils.hpp"
-#include "ConnectionAction.hpp"
+#include "ConnectAction.hpp"
 #include "JSONSerializable.hpp"
 
 class NodeGraph;
@@ -30,7 +30,7 @@ public:
     //Intended to be overriden but some default implementations are provided
     virtual PortDataType getPortDataType(PortID portId) const;
     virtual bool connectable(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const; //Default implementation relies on getConnectionAction(...)
-    virtual ConnectionAction getConnectionAction(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const;
+    virtual ConnectAction getConnectAction(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const;
     
     //Const iterators for node connections
     QMap<QUuid, Connection*>::const_iterator connectionsConstBegin() const;

@@ -8,9 +8,11 @@
 
 #include "Node.hpp"
 #include "Connection.hpp"
+#include "ConnectAction.hpp"
 #include "NodeType.hpp"
 #include "PortUtils.hpp"
-#include "Controller/NodeFactory.hpp"
+#include "NodeFactory.hpp"
+#include "JSONSerializable.hpp"
 
 class Node;
 class Connection;
@@ -27,6 +29,8 @@ public:
     void deleteNode(QUuid uuid);
     bool connectable(QUuid nodeIdA, QUuid nodeIdB, 
                      PortID portIdA, PortID portIdB) const;
+    ConnectAction::Pair getConnectActions(QUuid nodeIdA, QUuid nodeIdB,
+                                   PortID portIdA, PortID portIdB) const;
     //Doesn't check if the corresponding nodes/ports are connectable!
     void connect(QUuid nodeIdA, QUuid NodeIdB, 
                  PortID portIdA, PortID portIdB);
@@ -34,7 +38,11 @@ public:
     
     Node* getNode(QUuid uuid) const;
     Connection* getConnection(QUuid uuid) const;
-
+    
+    QJsonObject jsonBegin() const;
+    QJsonObject jsonAddNode(QJsonObject json, QUuid nodeID) const;
+    QJsonObject jsonAddConnection(QJsonObject json, QUuid connectionId) const;
+    
 signals:
     void nodeMoved(QUuid, QPointF position) const;
     void nodeCreated(NodeType type, QUuid uuid, Node *node, QPointF position);
@@ -45,9 +53,7 @@ signals:
     void connectionRemoved(QUuid uuid);
     
 protected:
-    void deleteNodeInternal(QUuid uuid);
-    
-    NodeFactory* factory;
+    NodeFactory *nodeFactory;
     QMap<QUuid, Node*> nodes;
     QMap<QUuid, Connection*> connections;
 };

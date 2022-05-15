@@ -51,19 +51,19 @@ PortDataType Node::getPortDataType(PortID portId) const
 bool Node::connectable(PortID portId,
                        QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const
 {
-    return getConnectionAction(portId, otherNodeId, otherPortId, otherdataType) != ConnectionAction::Nothing;
+    return getConnectAction(portId, otherNodeId, otherPortId, otherdataType) != ConnectAction::Nothing;
 }
 
-ConnectionAction Node::getConnectionAction(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const
+ConnectAction Node::getConnectAction(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const
 {
     //Go through all the connections associated with this node
     for (auto i = connections.constBegin(); i != connections.constEnd(); i++)
     {
         //If there already is a connection between the given ports, request a deletion
-        if (i.value()->contains(uuid, portId) && i.value()->contains(otherNodeId, otherPortId)) return ConnectionAction::Disconnect(i.key());
+        if (i.value()->contains(uuid, portId) && i.value()->contains(otherNodeId, otherPortId)) return ConnectAction::Disconnect(i.key());
     }
     //If there are no such connections, check the port types; if they match, request a connection or reject action if they don't 
-    return getPortDataType(portId) == otherdataType ? ConnectionAction::Connect : ConnectionAction::Nothing;
+    return getPortDataType(portId) == otherdataType ? ConnectAction::Connect : ConnectAction::Nothing;
 }
 
 void Node::onConnectionAdded(QUuid connectionId, PortID portId, Connection *connection)
