@@ -43,24 +43,71 @@ void GraphController::deleteSelection()
         serializedNodes.append(serializeNode(*graph, *i));
         graph->deleteNode(*i);
     }
+    clearSelection();
     serializedSubgraph["nodes"] = serializedNodes;
     serializedSubgraph["connections"] = serializedConnections;
-    qDebug() << serializedSubgraph;
 }
 
 void GraphController::cutSelectionToClipboard()
 {
-    
+    QJsonObject serializedSubgraph;
+    QJsonArray serializedNodes;
+    QJsonArray serializedConnections;
+    for (auto i = selection.begin(); i != selection.end(); ++i)
+    {
+        Node *node = graph->getNode(*i);
+        if (node == nullptr) continue;
+        serializedNodes.append(serializeNode(*graph, *i));
+        
+        QMap<QUuid, Connection*>::const_iterator j;
+        while ((j = node->connectionsConstBegin()) != node->connectionsConstEnd())
+        {
+            if (selection.contains(graph->getConnection(j.key())->getFirstNodeId()) &&
+                selection.contains(graph->getConnection(j.key())->getSecondNodeId()))
+            {
+                serializedConnections.append(serializeConnection(*graph, j.key()));
+            }
+            graph->disconnect(j.key());
+        }
+        graph->deleteNode(*i);
+    }
+    clearSelection();
+    serializedSubgraph["nodes"] = serializedNodes;
+    serializedSubgraph["connections"] = serializedConnections;
+    clipboard->setText(QJsonDocument(serializedSubgraph).toJson(QJsonDocument::Compact));
 }
 
 void GraphController::copySelectionToClipboard()
 {
-    
+    QJsonObject serializedSubgraph;
+    QJsonArray serializedNodes;
+    QJsonArray serializedConnections;
+    QSet<QUuid> connections;
+    for (auto i = selection.begin(); i != selection.end(); ++i)
+    {
+        Node *node = graph->getNode(*i);
+        if (node == nullptr) continue;
+        serializedNodes.append(serializeNode(*graph, *i));
+        for (auto j = node->connectionsConstBegin(); j != node->connectionsConstEnd(); ++j)
+        {
+            if (selection.contains(graph->getConnection(j.key())->getFirstNodeId()) &&
+                selection.contains(graph->getConnection(j.key())->getSecondNodeId()) &&
+                !connections.contains(j.key()))
+            {
+                connections.insert(j.key());
+                serializedConnections.append(serializeConnection(*graph, j.key()));
+            }
+        }
+    }
+    serializedSubgraph["nodes"] = serializedNodes;
+    serializedSubgraph["connections"] = serializedConnections;
+    clipboard->setText(QJsonDocument(serializedSubgraph).toJson(QJsonDocument::Compact));
 }
 
-void GraphController::pasteClipboard(QPointF position)
+void GraphController::pasteClipboard()
 {
     clearSelection();
+    restoreSubgraph(*graph, QJsonDocument::fromJson(clipboard->text().toUtf8()).object());
 }
 
 bool GraphController::connectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const
@@ -82,19 +129,5 @@ void GraphController::performConnectAction(QUuid nodeIdA, PortID portIdA, QUuid 
              actions.first.connectionToDelete == actions.second.connectionToDelete)
     {
         graph->disconnect(actions.first.connectionToDelete);
-    }
-}
-
-void GraphController::restoreJson(QJsonObject &json, QPointF offset, bool select)
-{
-    QJsonArray serializedNodes = json["nodes"].toArray();
-    QJsonArray serializedConnections = json["connections"].toArray();
-    for (auto i = serializedNodes.begin(); i != serializedNodes.end(); ++i)
-    {
-        restoreNode(*graph, i->toObject());
-    }
-    for (auto i = serializedConnections.begin(); i != serializedConnections.end(); ++i)
-    {
-        restoreConnection(*graph, i->toObject());
     }
 }

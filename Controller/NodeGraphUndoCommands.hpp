@@ -49,12 +49,14 @@ private:
 
 class ConnectUndoCommand : public NodeGraphUndoCommand
 {
+
+
 public:
     //ConnectUndoCommand();
     void undo() override;
     void redo() override;
 private:
-    
+
 };
 
 class PasteUndoCommand : public NodeGraphUndoCommand

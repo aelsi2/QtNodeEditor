@@ -12,8 +12,10 @@
 #include "Core/Connection.hpp"
 #include "Core/NodeGraph.hpp"
 
-QJsonObject serializeNode(NodeGraph& graph, QUuid nodeId, QMap<QUuid, QUuid> *uuidMap = nullptr);
-QJsonObject serializeConnection(NodeGraph& graph, QUuid connectionId, QMap<QUuid, QUuid> *nodeUuidMap = nullptr);
+QJsonObject serializeNode(NodeGraph const &graph, QUuid nodeId);
+QJsonObject serializeConnection(NodeGraph const &graph, QUuid connection);
 
-void restoreNode(NodeGraph& graph, const QJsonObject &json);
-void restoreConnection(NodeGraph& graph, const QJsonObject &json);
+QUuid restoreNode(NodeGraph& graph, QJsonObject const &json, bool newId = false, QMap<QUuid, QUuid> *uuidMap = nullptr);
+QUuid restoreConnection(NodeGraph& graph, QJsonObject const &json, bool newId = false, QMap<QUuid, QUuid> const *nodeUuidMap = nullptr);
+
+void restoreSubgraph(NodeGraph& graph, QJsonObject const &json, QSet<QUuid> *nodes = nullptr, QSet<QUuid> *connections = nullptr);

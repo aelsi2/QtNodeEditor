@@ -28,7 +28,7 @@ public:
     
     void cutSelectionToClipboard();
     void copySelectionToClipboard();
-    void pasteClipboard(QPointF position);
+    void pasteClipboard();
     
     bool connectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const;
     void performConnectAction(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB);
@@ -37,9 +37,6 @@ public:
     void deserializeGraph(QJsonObject json);
     
 private:
-    
-    void restoreJson(QJsonObject &json, QPointF offset = QPointF(0, 0), bool select = false);
-    
     NodeGraph *graph;
     QUndoStack *undoStack;
     QClipboard *clipboard;

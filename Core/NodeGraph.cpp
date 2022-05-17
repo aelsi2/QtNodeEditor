@@ -2,7 +2,7 @@
 
 NodeGraph::NodeGraph(NodeFactory *nodeFactory) : nodeFactory(nodeFactory) {}
 
-void NodeGraph::moveNode(QUuid uuid, QPointF newPosition)
+void NodeGraph::moveNodeTo(QUuid uuid, QPointF newPosition)
 {
     if (!nodes.contains(uuid)) return;
     nodes.value(uuid)->updatePosition(newPosition);
@@ -55,10 +55,10 @@ ConnectAction::Pair NodeGraph::getConnectActions(QUuid nodeIdA, QUuid nodeIdB, P
      };
 }
 
-void NodeGraph::connect(QUuid nodeIdA, QUuid nodeIdB, 
+QUuid NodeGraph::connect(QUuid nodeIdA, QUuid nodeIdB, 
                         PortID portIdA, PortID portIdB, QUuid connectionId)
 {
-    if (!nodes.contains(nodeIdA) || !nodes.contains(nodeIdB)) return;
+    if (!nodes.contains(nodeIdA) || !nodes.contains(nodeIdB)) return QUuid();
     Node *nodeA = nodes.value(nodeIdA);
     Node *nodeB = nodes.value(nodeIdB);
     
@@ -69,6 +69,7 @@ void NodeGraph::connect(QUuid nodeIdA, QUuid nodeIdB,
     nodeB->addConnection(connectionId, portIdB, connection);
     
     emit connectionMade(connectionId, connection, nodeIdA, nodeIdB, portIdA, portIdB);
+    return connectionId;
 }
 
 void NodeGraph::disconnect(QUuid connectionId)

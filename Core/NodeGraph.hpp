@@ -23,7 +23,7 @@ class NodeGraph : public QObject
 public:
     NodeGraph(NodeFactory *nodeFactory);
     
-    void moveNode(QUuid uuid, QPointF newPosition);
+    void moveNodeTo(QUuid uuid, QPointF newPosition);
     QUuid createNode(NodeType type, QPointF position, QUuid uuid = QUuid::createUuid());
     void deleteNode(QUuid uuid);
     bool connectable(QUuid nodeIdA, QUuid nodeIdB, 
@@ -31,7 +31,7 @@ public:
     ConnectAction::Pair getConnectActions(QUuid nodeIdA, QUuid nodeIdB,
                                    PortID portIdA, PortID portIdB) const;
     
-    void connect(QUuid nodeIdA, QUuid NodeIdB,
+    QUuid connect(QUuid nodeIdA, QUuid NodeIdB,
                  PortID portIdA, PortID portIdB, QUuid connectionId = QUuid::createUuid());
     void disconnect(QUuid connectionId);
     
