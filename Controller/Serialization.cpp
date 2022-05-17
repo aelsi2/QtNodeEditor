@@ -1,17 +1,24 @@
 #include "Serialization.hpp"
 
-QJsonObject serializeNode(NodeGraph& graph, QUuid nodeId, QMap<QUuid, QUuid> &uuidMap)
+QJsonObject serializeNode(NodeGraph& graph, QUuid nodeId, QMap<QUuid, QUuid> *uuidMap)
 {
     QJsonObject json;
     Node *node = graph.getNode(nodeId);
-    QUuid newUuid = QUuid::createUuid();
+    QUuid uuid = node->getUuid();
     QJsonObject jsonPos;
+    
+    if (uuidMap != nullptr)
+    {
+        uuid = QUuid::createUuid();
+        uuidMap->insert(node->getUuid(), uuid);
+    }
+    
     jsonPos["x"] = node->getPosition().x();
     jsonPos["y"] = node->getPosition().y();
     json["position"] = jsonPos;
-    json["uuid"] = newUuid.toString();
+    json["uuid"] = uuid.toString();
     json["type"] = node->type;
-    uuidMap.insert(node->getUuid(), newUuid);
+    
     return json;
 }
 
@@ -81,10 +88,10 @@ void restoreNode(NodeGraph& graph, const QJsonObject &json)
 
 void restoreConnection(NodeGraph& graph, const QJsonObject &json)
 {
-    QJsonValue jsonNodeIdA = json["nodeIdA"].isString();
-    QJsonValue jsonNodeIdB = json["nodeIdB"].isString();
-    QJsonValue jsonPortA = json["portIdA"].isString();
-    QJsonValue jsonPortB = json["portIdB"].isString();
+    QJsonValue jsonNodeIdA = json["nodeIdA"];
+    QJsonValue jsonNodeIdB = json["nodeIdB"];
+    QJsonValue jsonPortA = json["portIdA"];
+    QJsonValue jsonPortB = json["portIdB"];
     
     if (!jsonNodeIdA.isString() || !jsonNodeIdB.isString()) return;
     if (!jsonPortA.isObject() || !jsonPortB.isObject()) return;

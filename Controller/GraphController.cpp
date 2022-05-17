@@ -37,10 +37,10 @@ void GraphController::deleteSelection()
         QMap<QUuid, Connection*>::const_iterator j;
         while ((j = node->connectionsConstBegin()) != node->connectionsConstEnd())
         {
-            serializedConnections.append(graph->getConnection(j.key())->serialize());
+            serializedConnections.append(serializeConnection(*graph, j.key()));
             graph->disconnect(j.key());
         }
-        //serializedNodes.append(node->serialize());
+        serializedNodes.append(serializeNode(*graph, *i));
         graph->deleteNode(*i);
     }
     serializedSubgraph["nodes"] = serializedNodes;
@@ -92,5 +92,9 @@ void GraphController::restoreJson(QJsonObject &json, QPointF offset, bool select
     for (auto i = serializedNodes.begin(); i != serializedNodes.end(); ++i)
     {
         restoreNode(*graph, i->toObject());
+    }
+    for (auto i = serializedConnections.begin(); i != serializedConnections.end(); ++i)
+    {
+        restoreConnection(*graph, i->toObject());
     }
 }

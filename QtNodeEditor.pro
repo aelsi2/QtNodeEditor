@@ -36,7 +36,6 @@ HEADERS += \
     Controller/NodeGraphUndoCommands.hpp \
     Core/NodeType.hpp \
     Core/PortUtils.hpp \
-    Core/JSONSerializable.hpp \
     Utils/Port.hpp \
     Utils/PortPolicy.hpp \
     MainWindow.hpp \

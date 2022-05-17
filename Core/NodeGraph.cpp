@@ -56,13 +56,12 @@ ConnectAction::Pair NodeGraph::getConnectActions(QUuid nodeIdA, QUuid nodeIdB, P
 }
 
 void NodeGraph::connect(QUuid nodeIdA, QUuid nodeIdB, 
-                        PortID portIdA, PortID portIdB)
+                        PortID portIdA, PortID portIdB, QUuid connectionId)
 {
     if (!nodes.contains(nodeIdA) || !nodes.contains(nodeIdB)) return;
     Node *nodeA = nodes.value(nodeIdA);
     Node *nodeB = nodes.value(nodeIdB);
     
-    QUuid connectionId = QUuid::createUuid();
     Connection *connection = new Connection(this, nodeIdA, nodeIdB, portIdA, portIdB, connectionId);
     connections.insert(connectionId, connection);
     

@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QUuid>
 #include <QPointF>
-#include <optional>
+#include <QJsonValue>
 #include <QVector>
 
 #include "NodeType.hpp"
@@ -11,7 +11,6 @@
 #include "Connection.hpp"
 #include "PortUtils.hpp"
 #include "ConnectAction.hpp"
-#include "JSONSerializable.hpp"
 
 class NodeGraph;
 class Connection;

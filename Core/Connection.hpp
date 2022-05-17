@@ -5,12 +5,11 @@
 #include "Node.hpp"
 #include "PortUtils.hpp"
 #include "NodeGraph.hpp"
-#include "JSONSerializable.hpp"
 
 class Node;
 class NodeGraph;
 
-class Connection : public JSONSerializable
+class Connection
 {
 public:
     Connection(NodeGraph *graph,
@@ -35,9 +34,6 @@ public:
     Node* getOtherNode(QUuid nodeId) const;
     
     bool contains(QUuid nodeId, PortID portId) const;
-    
-    QJsonObject serialize() const override;
-    void deserialize(QJsonObject &json) override;
     
     NodeGraph* getGraph() const;
     QUuid getUuid() const;

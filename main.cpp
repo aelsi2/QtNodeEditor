@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     QClipboard *clipboard = QGuiApplication::clipboard();
     GraphController *controller = new GraphController(graph, stack, clipboard);
     QUuid uuid = controller->createNode(0);
-    QUuid uuid2 = controller->createNode(0);
+    QUuid uuid2 = controller->createNode(0, QPointF(5, 4.5));
     controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
     controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 1));
     controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 2));

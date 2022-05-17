@@ -12,7 +12,6 @@
 #include "NodeType.hpp"
 #include "PortUtils.hpp"
 #include "NodeFactory.hpp"
-#include "JSONSerializable.hpp"
 
 class Node;
 class Connection;
@@ -32,8 +31,8 @@ public:
     ConnectAction::Pair getConnectActions(QUuid nodeIdA, QUuid nodeIdB,
                                    PortID portIdA, PortID portIdB) const;
     
-    void connect(QUuid nodeIdA, QUuid NodeIdB, 
-                 PortID portIdA, PortID portIdB);
+    void connect(QUuid nodeIdA, QUuid NodeIdB,
+                 PortID portIdA, PortID portIdB, QUuid connectionId = QUuid::createUuid());
     void disconnect(QUuid connectionId);
     
     Node* getNode(QUuid uuid) const;
