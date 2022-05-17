@@ -24,26 +24,20 @@ class NodeGraph : public QObject
 public:
     NodeGraph(NodeFactory *nodeFactory);
     
-    void updateNodePosition(QUuid uuid, QPointF newPosition);
+    void moveNode(QUuid uuid, QPointF newPosition);
     QUuid createNode(NodeType type, QPointF position, QUuid uuid = QUuid::createUuid());
     void deleteNode(QUuid uuid);
     bool connectable(QUuid nodeIdA, QUuid nodeIdB, 
                      PortID portIdA, PortID portIdB) const;
     ConnectAction::Pair getConnectActions(QUuid nodeIdA, QUuid nodeIdB,
                                    PortID portIdA, PortID portIdB) const;
-    //Doesn't check if the corresponding nodes/ports are connectable!
+    
     void connect(QUuid nodeIdA, QUuid NodeIdB, 
                  PortID portIdA, PortID portIdB);
     void disconnect(QUuid connectionId);
     
     Node* getNode(QUuid uuid) const;
     Connection* getConnection(QUuid uuid) const;
-    
-    
-    void jsonSerializeNode(QJsonObject &json, QUuid nodeId) const;
-    void jsonSerializeConnection(QJsonObject &json, QUuid connectionId) const;
-    void jsonAddNode(QJsonArray &json, QUuid nodeId) const;
-    void jsonAddConnection(QJsonArray &json, QUuid connectionId) const;
     
 signals:
     void nodeMoved(QUuid, QPointF position) const;

@@ -26,7 +26,7 @@ private:
     QUuid uuid;
 };
 
-class NodeDeleteUndoCommand : public NodeGraphUndoCommand
+class DeleteUndoCommand : public NodeGraphUndoCommand
 {
 public:
     void undo() override;
@@ -50,6 +50,7 @@ private:
 class ConnectUndoCommand : public NodeGraphUndoCommand
 {
 public:
+    //ConnectUndoCommand();
     void undo() override;
     void redo() override;
 private:

@@ -62,3 +62,28 @@ bool Connection::contains(QUuid nodeId, PortID portId) const
 
 NodeGraph* Connection::getGraph() const { return graph;}
 QUuid Connection::getUuid() const { return uuid;}
+
+QJsonObject Connection::serialize() const
+{
+    QJsonObject json;
+    QJsonObject portAJson;
+    QJsonObject portBJson;
+    
+    portAJson["direction"] = (portIdA.direction == PortDirection::IN) ? 0 : 1;
+    portAJson["index"] = portIdA.index;
+    
+    portBJson["direction"] = (portIdB.direction == PortDirection::IN) ? 0 : 1;
+    portBJson["index"] = portIdB.index;
+    
+    json["nodeIdA"] = nodeIdA.toString();
+    json["nodeIdB"] = nodeIdB.toString();
+    json["portIdA"] = portAJson;
+    json["portIdB"] = portBJson;
+    
+    return json;
+}
+
+void Connection::deserialize(QJsonObject &json)
+{
+    
+}

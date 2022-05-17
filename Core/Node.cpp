@@ -8,6 +8,7 @@ Node::Node(NodeGraph &graph, NodeType type)
 
 QUuid Node::getUuid() const { return uuid; }
 NodeGraph& Node::getGraph() const { return graph; }
+QPointF Node::getPosition() const { return position; }
 
 QMap<QUuid, Connection*>::const_iterator Node::connectionsConstBegin() const { return connections.constBegin(); }
 QMap<QUuid, Connection*>::const_iterator Node::connectionsConstEnd() const { return connections.constEnd(); }
@@ -68,9 +69,10 @@ ConnectAction Node::getConnectAction(PortID portId, QUuid otherNodeId, PortID ot
     //If there are no such connections, check the port types; if they match, request a connection or reject action if they don't 
     return getPortDataType(portId) == otherdataType ? ConnectAction::Connect : ConnectAction::Nothing;
 }
-
-void Node::serialize(QJsonObject &json) const
+/*
+QJsonObject Node::serialize() const
 {
+    QJsonObject json;
     QJsonObject jsonPos;
     QJsonObject jsonData;
     
@@ -82,6 +84,8 @@ void Node::serialize(QJsonObject &json) const
     json["position"] = jsonPos;
     json["data"] = jsonData;
     json["type"] = type;
+    
+    return json;
 }
 
 void Node::deserialize(QJsonObject &json)
@@ -94,7 +98,7 @@ void Node::deserialize(QJsonObject &json)
     position.setX(jsonX.toDouble());
     position.setY(jsonY.toDouble());
 }
-
+*/
 void Node::onConnectionAdded(QUuid connectionId, PortID portId, Connection *connection)
 {
     Q_UNUSED(connectionId)
@@ -108,12 +112,12 @@ void Node::onConnectionRemoved(QUuid connectionId, PortID portId)
     Q_UNUSED(portId)
 }
 
-void Node::onDataSerialize(QJsonObject &json) const
+void Node::serializeData(QJsonValue &json) const
 {
     Q_UNUSED(json)
 }
 
-void Node::onDataDeserialize(QJsonObject &json)
+void Node::restoreData(const QJsonValue &json)
 {
     Q_UNUSED(json)
 }

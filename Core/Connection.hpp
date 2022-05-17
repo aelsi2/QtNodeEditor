@@ -36,7 +36,7 @@ public:
     
     bool contains(QUuid nodeId, PortID portId) const;
     
-    void serialize(QJsonObject &json) const override;
+    QJsonObject serialize() const override;
     void deserialize(QJsonObject &json) override;
     
     NodeGraph* getGraph() const;

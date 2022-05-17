@@ -10,10 +10,15 @@
 class Node;
 class NodeGraph;
 
-class NodeFactoryDelegate{
+class NodeFactoryDelegate
+{
 public:
-    virtual Node* createNode(NodeType type, NodeGraph *graph, QPointF position, QUuid uuid) = 0;
-    virtual ~NodeFactoryDelegate();
+    virtual Node* createNode(NodeType type, NodeGraph *graph, QPointF position, QUuid uuid) const = 0;
+};
+
+class AbstractNodeDelegate : public NodeFactoryDelegate
+{
+    Node* createNode(NodeType type, NodeGraph *graph, QPointF position, QUuid uuid) const override;
 };
 
 class NodeFactory

@@ -2,7 +2,7 @@
 
 NodeGraph::NodeGraph(NodeFactory *nodeFactory) : nodeFactory(nodeFactory) {}
 
-void NodeGraph::updateNodePosition(QUuid uuid, QPointF newPosition)
+void NodeGraph::moveNode(QUuid uuid, QPointF newPosition)
 {
     if (!nodes.contains(uuid)) return;
     nodes.value(uuid)->updatePosition(newPosition);
@@ -22,16 +22,6 @@ void NodeGraph::deleteNode(QUuid uuid)
 {
     if (!nodes.contains(uuid)) return;
     Node *node = nodes.value(uuid);
-    if (node->hasConnections()){
-        QMutableMapIterator<QUuid, Connection*> i(connections);
-        for (i.next(); i.hasNext();){
-            if (i.value()->getFirstNode() == node || i.value()->getSecondNode() == node){
-                QUuid connectionId = i.value()->getUuid();
-                disconnect(connectionId);
-            }
-            else i.next();
-        }
-    }
     nodes.remove(uuid);
     delete node;
     emit nodeDeleted(uuid);
@@ -41,13 +31,10 @@ void NodeGraph::deleteNode(QUuid uuid)
 bool NodeGraph::connectable(QUuid nodeIdA, QUuid nodeIdB, 
                             PortID portIdA, PortID portIdB) const
 {
-    //Check if the given nodes exist in the dictionary and get pointers to them
     if (!nodes.contains(nodeIdA) || !nodes.contains(nodeIdB)) return false;
     Node *nodeA = nodes.value(nodeIdA);
     Node *nodeB = nodes.value(nodeIdB);
-    //Prohibit input-to-input and output-to-output connections
-    if (portIdA.direction == portIdB.direction) return false;
-    //Get the ports' data types and check if the opposite nodes accept them
+    //if (portIdA.direction == portIdB.direction) return false;
     PortDataType portTypeA = nodeA->getPortDataType(portIdA);
     PortDataType portTypeB = nodeB->getPortDataType(portIdB);
     if (!nodeA->connectable(portIdA, nodeIdB, portIdB, portTypeB)) return false;
@@ -116,27 +103,4 @@ Connection* NodeGraph::getConnection(QUuid uuid) const
 {
     if (!connections.contains(uuid)) return nullptr;
     return connections.value(uuid);
-}
-
-void NodeGraph::jsonSerializeNode(QJsonObject &json, QUuid nodeId) const
-{
-    if (!nodes.contains(nodeId)) return;
-    nodes.value(nodeId)->serialize(json);
-}
-
-void NodeGraph::jsonSerializeConnection(QJsonObject &json, QUuid connectionId) const
-{
-    if (!nodes.contains(connectionId)) return;
-}
-
-void NodeGraph::jsonAddNode(QJsonArray &json, QUuid nodeId) const
-{
-    if (!nodes.contains(nodeId)) return;
-    QJsonObject jsonNode;
-    nodes.value(nodeId)->serialize(jsonNode);
-    json.append(jsonNode);
-}
-void NodeGraph::jsonAddConnection(QJsonArray &json, QUuid connectionId) const
-{
-    
 }

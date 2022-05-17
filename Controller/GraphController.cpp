@@ -18,20 +18,49 @@ void GraphController::clearSelection()
     selection.clear();
 }
 
-void GraphController::createNode(NodeType type, QPointF position)
+QUuid GraphController::createNode(NodeType type, QPointF position)
 {
     QUuid uuid = graph->createNode(type, position);
     undoStack->push(new NodeCreateUndoCommand(graph, type, position, uuid));
+    return uuid;
 }
 
 void GraphController::deleteSelection()
 {
-    QSet<Connection*> connections;
+    QJsonObject serializedSubgraph;
+    QJsonArray serializedNodes;
+    QJsonArray serializedConnections;
     for (auto i = selection.begin(); i != selection.end(); ++i)
     {
         Node *node = graph->getNode(*i);
         if (node == nullptr) continue;
+        QMap<QUuid, Connection*>::const_iterator j;
+        while ((j = node->connectionsConstBegin()) != node->connectionsConstEnd())
+        {
+            serializedConnections.append(graph->getConnection(j.key())->serialize());
+            graph->disconnect(j.key());
+        }
+        //serializedNodes.append(node->serialize());
+        graph->deleteNode(*i);
     }
+    serializedSubgraph["nodes"] = serializedNodes;
+    serializedSubgraph["connections"] = serializedConnections;
+    qDebug() << serializedSubgraph;
+}
+
+void GraphController::cutSelectionToClipboard()
+{
+    
+}
+
+void GraphController::copySelectionToClipboard()
+{
+    
+}
+
+void GraphController::pasteClipboard(QPointF position)
+{
+    clearSelection();
 }
 
 bool GraphController::connectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const
@@ -53,5 +82,15 @@ void GraphController::performConnectAction(QUuid nodeIdA, PortID portIdA, QUuid 
              actions.first.connectionToDelete == actions.second.connectionToDelete)
     {
         graph->disconnect(actions.first.connectionToDelete);
+    }
+}
+
+void GraphController::restoreJson(QJsonObject &json, QPointF offset, bool select)
+{
+    QJsonArray serializedNodes = json["nodes"].toArray();
+    QJsonArray serializedConnections = json["connections"].toArray();
+    for (auto i = serializedNodes.begin(); i != serializedNodes.end(); ++i)
+    {
+        restoreNode(*graph, i->toObject());
     }
 }

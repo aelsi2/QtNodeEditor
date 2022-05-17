@@ -6,6 +6,6 @@
 
 class JSONSerializable
 {
-    virtual void serialize(QJsonObject &json) const = 0;
+    virtual QJsonObject serialize() const = 0;
     virtual void deserialize(QJsonObject &json)  = 0;
 };

@@ -10,6 +10,7 @@ CONFIG += c++11
 
 SOURCES += \
     Controller/GraphController.cpp \
+    Controller/Serialization.cpp \
     Core/ConnectAction.cpp \
     Core/Connection.cpp \
     Core/Node.cpp \
@@ -27,6 +28,7 @@ SOURCES += \
 
 HEADERS += \
     Controller/GraphController.hpp \
+    Controller/Serialization.hpp \
     Core/ConnectAction.hpp \
     Core/Connection.hpp \
     Core/Node.hpp \

@@ -20,10 +20,10 @@ NodeMoveUndoCommand::NodeMoveUndoCommand(NodeGraph *graph, QUuid nodeUuid, QPoin
 
 void NodeMoveUndoCommand::undo()
 {
-    graph->updateNodePosition(uuid, oldPos);
+    graph->moveNode(uuid, oldPos);
 }
 
 void NodeMoveUndoCommand::redo()
 {
-    graph->updateNodePosition(uuid, newPos);
+    graph->moveNode(uuid, newPos);
 }

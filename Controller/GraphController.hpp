@@ -5,12 +5,14 @@
 #include <QUuid>
 #include <QPointF>
 #include <QSet>
+#include <QMap>
 
 #include "Core/NodeGraph.hpp"
 #include "NodeGraphUndoCommands.hpp"
 #include "Core/PortUtils.hpp"
 #include "Core/NodeType.hpp"
 #include "Core/ConnectAction.hpp"
+#include "Serialization.hpp"
 
 class GraphController
 {
@@ -21,7 +23,7 @@ public:
     void deselectNode(QUuid nodeId);
     void clearSelection();
     
-    void createNode(NodeType type, QPointF position);
+    QUuid createNode(NodeType type, QPointF position = QPointF(0, 0));
     void deleteSelection();
     
     void cutSelectionToClipboard();
@@ -35,6 +37,9 @@ public:
     void deserializeGraph(QJsonObject json);
     
 private:
+    
+    void restoreJson(QJsonObject &json, QPointF offset = QPointF(0, 0), bool select = false);
+    
     NodeGraph *graph;
     QUndoStack *undoStack;
     QClipboard *clipboard;
