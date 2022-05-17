@@ -30,18 +30,21 @@ int main(int argc, char *argv[])
     QUndoStack *stack = new QUndoStack();
     GraphController *controller = new GraphController(graph, stack, QGuiApplication::clipboard());
     
+    qDebug() << "create";
     QUuid uuid = controller->createNode(0);
     QUuid uuid2 = controller->createNode(0, QPointF(5, 4.5));
-    controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
-    controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 1));
-    controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 2));
+    //controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
+    //controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 1));
+    //controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 2));
 
     controller->selectNode(uuid);
     controller->selectNode(uuid2);
+    qDebug() << "cut";
     controller->cutSelectionToClipboard();
+    qDebug() << "undo";
+    stack->undo();
+    qDebug() << "paste";
     controller->pasteClipboard();
-    controller->pasteClipboard();
-    controller->deleteSelection();
     
     MainWindow w;
     w.show();

@@ -16,6 +16,6 @@ QJsonObject serializeNode(NodeGraph const &graph, QUuid nodeId);
 QJsonObject serializeConnection(NodeGraph const &graph, QUuid connection);
 
 QUuid restoreNode(NodeGraph& graph, QJsonObject const &json, bool newId = false, QMap<QUuid, QUuid> *uuidMap = nullptr);
-QUuid restoreConnection(NodeGraph& graph, QJsonObject const &json, bool newId = false, QMap<QUuid, QUuid> const *nodeUuidMap = nullptr);
+QUuid restoreConnection(NodeGraph& graph, QJsonObject const &json, bool newId = false, QMap<QUuid, QUuid> const *nodeUuidLookup = nullptr);
 
 void restoreSubgraph(NodeGraph& graph, QJsonObject const &json, QSet<QUuid> *nodes = nullptr, QSet<QUuid> *connections = nullptr);

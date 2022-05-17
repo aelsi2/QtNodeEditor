@@ -25,56 +25,43 @@ QUuid GraphController::createNode(NodeType type, QPointF position)
     return uuid;
 }
 
-void GraphController::deleteSelection()
+QJsonObject GraphController::deleteSelection()
 {
     QJsonObject serializedSubgraph;
     QJsonArray serializedNodes;
     QJsonArray serializedConnections;
+    QSet<QUuid> nodes;
+    QSet<QUuid> connections;
     for (auto i = selection.begin(); i != selection.end(); ++i)
     {
         Node *node = graph->getNode(*i);
         if (node == nullptr) continue;
-        QMap<QUuid, Connection*>::const_iterator j;
-        while ((j = node->connectionsConstBegin()) != node->connectionsConstEnd())
-        {
-            serializedConnections.append(serializeConnection(*graph, j.key()));
-            graph->disconnect(j.key());
-        }
+        
+        nodes.insert(*i);
         serializedNodes.append(serializeNode(*graph, *i));
-        graph->deleteNode(*i);
+        
+        for (auto j = node->connectionsConstBegin(); j != node->connectionsConstEnd(); ++j)
+        {
+            if (selection.contains(graph->getConnection(j.key())->getFirstNodeId()) &&
+                selection.contains(graph->getConnection(j.key())->getSecondNodeId())
+                && !connections.contains(j.key()))
+            {
+                connections.insert(j.key());
+                serializedConnections.append(serializeConnection(*graph, j.key()));
+            }
+        }
     }
     clearSelection();
     serializedSubgraph["nodes"] = serializedNodes;
     serializedSubgraph["connections"] = serializedConnections;
+    undoStack->push(new PasteDeleteUndoCommand(graph, serializedSubgraph, nodes, connections, PasteDeleteUndoCommand::Mode::Delete));
+    return serializedSubgraph;
 }
 
 void GraphController::cutSelectionToClipboard()
 {
-    QJsonObject serializedSubgraph;
-    QJsonArray serializedNodes;
-    QJsonArray serializedConnections;
-    for (auto i = selection.begin(); i != selection.end(); ++i)
-    {
-        Node *node = graph->getNode(*i);
-        if (node == nullptr) continue;
-        serializedNodes.append(serializeNode(*graph, *i));
-        
-        QMap<QUuid, Connection*>::const_iterator j;
-        while ((j = node->connectionsConstBegin()) != node->connectionsConstEnd())
-        {
-            if (selection.contains(graph->getConnection(j.key())->getFirstNodeId()) &&
-                selection.contains(graph->getConnection(j.key())->getSecondNodeId()))
-            {
-                serializedConnections.append(serializeConnection(*graph, j.key()));
-            }
-            graph->disconnect(j.key());
-        }
-        graph->deleteNode(*i);
-    }
-    clearSelection();
-    serializedSubgraph["nodes"] = serializedNodes;
-    serializedSubgraph["connections"] = serializedConnections;
-    clipboard->setText(QJsonDocument(serializedSubgraph).toJson(QJsonDocument::Compact));
+    QJsonObject serializedSubgraph = deleteSelection();
+    clipboard->setText(QJsonDocument(serializedSubgraph).toJson(QJsonDocument::Indented));
 }
 
 void GraphController::copySelectionToClipboard()
@@ -101,13 +88,15 @@ void GraphController::copySelectionToClipboard()
     }
     serializedSubgraph["nodes"] = serializedNodes;
     serializedSubgraph["connections"] = serializedConnections;
-    clipboard->setText(QJsonDocument(serializedSubgraph).toJson(QJsonDocument::Compact));
+    clipboard->setText(QJsonDocument(serializedSubgraph).toJson(QJsonDocument::Indented));
 }
 
 void GraphController::pasteClipboard()
 {
     clearSelection();
-    restoreSubgraph(*graph, QJsonDocument::fromJson(clipboard->text().toUtf8()).object());
+    auto json = QJsonDocument::fromJson(clipboard->text().toUtf8()).object();
+    auto undoCommand = new PasteDeleteUndoCommand(graph, json, PasteDeleteUndoCommand::Mode::Paste);
+    undoStack->push(undoCommand);
 }
 
 bool GraphController::connectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const

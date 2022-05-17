@@ -24,7 +24,7 @@ public:
     void clearSelection();
     
     QUuid createNode(NodeType type, QPointF position = QPointF(0, 0));
-    void deleteSelection();
+    QJsonObject deleteSelection();
     
     void cutSelectionToClipboard();
     void copySelectionToClipboard();

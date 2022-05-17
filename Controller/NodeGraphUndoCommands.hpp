@@ -4,6 +4,7 @@
 #include <QUuid>
 #include <QPointF>
 
+#include "Serialization.hpp"
 #include "Core/NodeGraph.hpp"
 
 class NodeGraphUndoCommand : public QUndoCommand
@@ -26,13 +27,29 @@ private:
     QUuid uuid;
 };
 
-class DeleteUndoCommand : public NodeGraphUndoCommand
+class PasteDeleteUndoCommand : public NodeGraphUndoCommand
 {
 public:
+    
+    enum class Mode
+    {
+        Delete, Paste
+    };
+
+    PasteDeleteUndoCommand(NodeGraph *graph, QJsonObject const &json, Mode mode = Mode::Delete);
+    PasteDeleteUndoCommand(NodeGraph *graph, QJsonObject const &json, QSet<QUuid> const &nodes, QSet<QUuid> const &connections, Mode mode = Mode::Delete);
     void undo() override;
     void redo() override;
-private:
     
+    QSet<QUuid> nodes;
+    QSet<QUuid> connections;
+    
+private:
+    void deleteSubgraph();
+    void pasteSubgraph();
+    
+    Mode mode = Mode::Delete;
+    QJsonObject serializedSubgraph;
 };
 
 class NodeMoveUndoCommand : public NodeGraphUndoCommand
@@ -59,11 +76,3 @@ private:
 
 };
 
-class PasteUndoCommand : public NodeGraphUndoCommand
-{
-public:
-    void undo() override;
-    void redo() override;
-private:
-    
-};

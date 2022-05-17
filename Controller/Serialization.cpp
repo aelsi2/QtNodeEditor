@@ -87,7 +87,7 @@ QUuid restoreNode(NodeGraph& graph, QJsonObject const &json, bool newId, QMap<QU
     return uuid;
 }
 
-QUuid restoreConnection(NodeGraph& graph, QJsonObject const &json, bool newId, QMap<QUuid, QUuid> const *nodeUuidMap)
+QUuid restoreConnection(NodeGraph& graph, QJsonObject const &json, bool newId, QMap<QUuid, QUuid> const *nodeUuidLookup)
 {
     QJsonValue jsonUuid = json["uuid"];
     QJsonValue jsonNodeIdA = json["nodeIdA"];
@@ -113,10 +113,10 @@ QUuid restoreConnection(NodeGraph& graph, QJsonObject const &json, bool newId, Q
     QUuid nodeIdA = QUuid(jsonNodeIdA.toString());
     QUuid nodeIdB = QUuid(jsonNodeIdB.toString());
     
-    if (nodeUuidMap != nullptr)
+    if (nodeUuidLookup != nullptr)
     {
-        nodeIdA = nodeUuidMap->value(nodeIdA, nodeIdA);
-        nodeIdB = nodeUuidMap->value(nodeIdB, nodeIdB);
+        nodeIdA = nodeUuidLookup->value(nodeIdA, nodeIdA);
+        nodeIdB = nodeUuidLookup->value(nodeIdB, nodeIdB);
     }
     
     PortID portIdA = PortID(jsonDirectionA.toInt() == 0 ? PortDirection::IN : PortDirection::OUT, jsonIndexA.toInt());
