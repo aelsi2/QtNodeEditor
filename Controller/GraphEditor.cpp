@@ -1,48 +1,48 @@
-#include "GraphController.hpp"
+#include "GraphEditor.hpp"
 
-GraphController::GraphController(NodeGraph *nodeGraph, QUndoStack *undoStack, QClipboard *clipboard)
+GraphEditor::GraphEditor(NodeGraph *nodeGraph, QUndoStack *undoStack, QClipboard *clipboard)
     : graph(nodeGraph), undoStack(undoStack), clipboard(clipboard) {}
 
-void GraphController::selectNode(QUuid nodeId)
+void GraphEditor::selectNode(QUuid nodeId)
 {
     selection.insert(nodeId);
 }
 
-void GraphController::deselectNode(QUuid nodeId)
+void GraphEditor::deselectNode(QUuid nodeId)
 {
     selection.remove(nodeId);
 }
 
-void GraphController::clearSelection()
+void GraphEditor::clearSelection()
 {
     selection.clear();
 }
 
-QUuid GraphController::createNode(NodeType type, QPointF position)
+QUuid GraphEditor::createNode(NodeType type, QPointF position)
 {
     QUuid uuid = QUuid::createUuid();
-    undoStack->push(new NodeCreateUndoCommand(*graph, type, position, uuid));
+    undoStack->push(new NodeCreateUndoCommand(graph, type, position, uuid));
     return uuid;
 }
 
-void GraphController::deleteSelection()
+void GraphEditor::deleteSelection()
 {
     QSet<QUuid> connections;
     getConnectionsBetween(selection, connections);
     undoStack->beginMacro("Delete selection");
     for (auto i = connections.cbegin(); i != connections.cend(); ++i)
     {
-        undoStack->push(new ConnectUndoCommand(*graph, *i));
+        undoStack->push(new ConnectUndoCommand(graph, *i));
     }
     for (auto i = selection.cbegin(); i != selection.cend(); ++i)
     {
-        undoStack->push(new NodeDeleteUndoCommand(*graph, *i));
+        undoStack->push(new NodeDeleteUndoCommand(graph, *i));
     }
     undoStack->endMacro();
     clearSelection();
 }
 
-void GraphController::cutSelectionToClipboard()
+void GraphEditor::cutSelection()
 {
     QSet<QUuid> connections;
     getConnectionsBetween(selection, connections);
@@ -51,19 +51,19 @@ void GraphController::cutSelectionToClipboard()
     for (auto i = connections.cbegin(); i != connections.cend(); ++i)
     {
         jsonGraph.addConnection(*graph, *i);
-        undoStack->push(new ConnectUndoCommand(*graph, *i));
+        undoStack->push(new ConnectUndoCommand(graph, *i));
     }
     for (auto i = selection.cbegin(); i != selection.cend(); ++i)
     {
         jsonGraph.addNode(*graph, *i);
-        undoStack->push(new NodeDeleteUndoCommand(*graph, *i));
+        undoStack->push(new NodeDeleteUndoCommand(graph, *i));
     }
     undoStack->endMacro();
     clearSelection();
     clipboard->setText(jsonGraph.jsonDocument().toJson(QJsonDocument::Indented));
 }
 
-void GraphController::copySelectionToClipboard()
+void GraphEditor::copySelection()
 {
     QSet<QUuid> connections;
     getConnectionsBetween(selection, connections);
@@ -81,7 +81,7 @@ void GraphController::copySelectionToClipboard()
     clipboard->setText(jsonGraph.jsonDocument().toJson(QJsonDocument::Indented));
 }
 
-void GraphController::pasteClipboard()
+void GraphEditor::pasteClipboard()
 {
     clearSelection();
     auto json = QJsonDocument::fromJson(clipboard->text().toUtf8());
@@ -91,23 +91,24 @@ void GraphController::pasteClipboard()
     for (int i = 0; i < jsonGraph.nodeCount(); i++)
     {
         auto node = jsonGraph.getNode(i, true, &nodeUuidLookup);
-        undoStack->push(new NodeCreateUndoCommand(*graph, node.type, node.pos, node.data, node.uuid));
+        undoStack->push(new NodeCreateUndoCommand(graph, node.type, node.pos, node.data, node.uuid));
+        selectNode(node.uuid);
     }
     for (int i = 0; i < jsonGraph.connectionCount(); i++)
     {
         auto connection = jsonGraph.getConnection(i, true, &nodeUuidLookup);
-        undoStack->push(new ConnectUndoCommand(*graph, connection.nodeIdA, connection.nodeIdB,
+        undoStack->push(new ConnectUndoCommand(graph, connection.nodeIdA, connection.nodeIdB,
                                                connection.portIdA, connection.portIdB, connection.uuid));
     }
     undoStack->endMacro();
 }
 
-bool GraphController::connectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const
+bool GraphEditor::connectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const
 {
     return graph->connectable(nodeIdA, nodeIdB, portIdA, portIdB);
 }
 
-void GraphController::performConnectAction(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB)
+void GraphEditor::performConnectAction(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB)
 {
     ConnectAction::Pair actions = graph->getConnectActions(nodeIdA, nodeIdB, portIdA, portIdB);
     
@@ -116,24 +117,24 @@ void GraphController::performConnectAction(QUuid nodeIdA, PortID portIdA, QUuid 
         undoStack->beginMacro("Connect");
         if (actions.first.disconnectExisting)
         {
-            undoStack->push(new ConnectUndoCommand(*graph, actions.first.connectionToDelete));
+            undoStack->push(new ConnectUndoCommand(graph, actions.first.connectionToDelete));
         }
         if (actions.first.disconnectExisting &&
             actions.first.connectionToDelete != actions.second.connectionToDelete)
         {
-            undoStack->push(new ConnectUndoCommand(*graph, actions.second.connectionToDelete));
+            undoStack->push(new ConnectUndoCommand(graph, actions.second.connectionToDelete));
         }
-        undoStack->push(new ConnectUndoCommand(*graph, nodeIdA, nodeIdB, portIdA, portIdB));
+        undoStack->push(new ConnectUndoCommand(graph, nodeIdA, nodeIdB, portIdA, portIdB));
         undoStack->endMacro();
     }
     else if (actions.first.disconnectExisting && actions.second.disconnectExisting &&
              actions.first.connectionToDelete == actions.second.connectionToDelete)
     {
-        undoStack->push(new ConnectUndoCommand(*graph, actions.first.connectionToDelete));
+        undoStack->push(new ConnectUndoCommand(graph, actions.first.connectionToDelete));
     }
 }
 
-void GraphController::getConnectionsBetween(QSet<QUuid> const &nodes, QSet<QUuid> &connections)
+void GraphEditor::getConnectionsBetween(QSet<QUuid> const &nodes, QSet<QUuid> &connections)
 {
     for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
     {

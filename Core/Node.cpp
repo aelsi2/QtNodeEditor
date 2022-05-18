@@ -69,36 +69,7 @@ ConnectAction Node::getConnectAction(PortID portId, QUuid otherNodeId, PortID ot
     //If there are no such connections, check the port types; if they match, request a connection or reject action if they don't 
     return getPortDataType(portId) == otherdataType ? ConnectAction::Connect : ConnectAction::Nothing;
 }
-/*
-QJsonObject Node::serialize() const
-{
-    QJsonObject json;
-    QJsonObject jsonPos;
-    QJsonObject jsonData;
-    
-    onDataSerialize(jsonData);
-    
-    json["uuid"] = uuid.toString();
-    jsonPos["x"] = position.x();
-    jsonPos["y"] = position.y();
-    json["position"] = jsonPos;
-    json["data"] = jsonData;
-    json["type"] = type;
-    
-    return json;
-}
 
-void Node::deserialize(QJsonObject &json)
-{
-    QJsonValue jsonUuid = json["uuid"];
-    QJsonValue jsonPos = json["position"];
-    QJsonValue jsonX = jsonPos.toObject()["x"];
-    QJsonValue jsonY = jsonPos.toObject()["y"];
-    uuid = QUuid(jsonUuid.toString());
-    position.setX(jsonX.toDouble());
-    position.setY(jsonY.toDouble());
-}
-*/
 void Node::onConnectionAdded(QUuid connectionId, PortID portId, Connection *connection)
 {
     Q_UNUSED(connectionId)

@@ -1,6 +1,6 @@
 #include "NodeGraph.hpp"
 
-NodeGraph::NodeGraph(NodeFactory &nodeFactory) : nodeFactory(nodeFactory) {}
+NodeGraph::NodeGraph(NodeFactory *nodeFactory) : nodeFactory(nodeFactory) {}
 
 void NodeGraph::moveNodeTo(QUuid uuid, QPointF newPosition)
 {
@@ -12,7 +12,7 @@ void NodeGraph::moveNodeTo(QUuid uuid, QPointF newPosition)
 QUuid NodeGraph::createNode(NodeType type, QPointF position, QUuid uuid)
 {
     if (nodes.contains(uuid)) return uuid;
-    Node *node = nodeFactory.createNode(type, this, position, uuid);
+    Node *node = nodeFactory->createNode(type, this, position, uuid);
     nodes.insert(uuid, node);
     emit nodeCreated(type, uuid, node, position);
     return uuid;
@@ -62,7 +62,7 @@ QUuid NodeGraph::connect(QUuid nodeIdA, QUuid nodeIdB,
     Node *nodeA = nodes.value(nodeIdA);
     Node *nodeB = nodes.value(nodeIdB);
     
-    Connection *connection = new Connection(this, nodeIdA, nodeIdB, portIdA, portIdB, connectionId);
+    Connection *connection = new Connection(*this, nodeIdA, nodeIdB, portIdA, portIdB, connectionId);
     connections.insert(connectionId, connection);
     
     nodeA->addConnection(connectionId, portIdA, connection);

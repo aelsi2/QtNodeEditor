@@ -6,16 +6,16 @@
 #include <QJsonValue>
 #include <QVector>
 
-#include "NodeType.hpp"
+#include "HelperTypes.hpp"
 #include "NodeGraph.hpp"
 #include "Connection.hpp"
-#include "PortUtils.hpp"
+#include "HelperTypes.hpp"
 #include "ConnectAction.hpp"
 
 class NodeGraph;
 class Connection;
 
-class Node : public QObject//, public JSONSerializable
+class Node : public QObject
 {
     Q_OBJECT  
 public:
@@ -27,8 +27,6 @@ public:
     void addConnection(QUuid connectionId, PortID portId, Connection *connection);
     void removeConnection(QUuid connectionId, PortID portId);
     void removeConnection(QUuid connectionId); //Should only be used before the connection object gets deleted
-    //QJsonObject serialize() const override;
-    //void deserialize(QJsonObject &json) override;
     
     //Intended to be overriden but some default implementations are provided
     virtual PortDataType getPortDataType(PortID portId) const;

@@ -9,8 +9,7 @@
 #include "Node.hpp"
 #include "Connection.hpp"
 #include "ConnectAction.hpp"
-#include "NodeType.hpp"
-#include "PortUtils.hpp"
+#include "HelperTypes.hpp"
 #include "NodeFactory.hpp"
 
 class Node;
@@ -21,7 +20,7 @@ class NodeGraph : public QObject
 {
     Q_OBJECT
 public:
-    NodeGraph(NodeFactory &nodeFactory);
+    NodeGraph(NodeFactory *nodeFactory);
     
     void moveNodeTo(QUuid uuid, QPointF newPosition);
     QUuid createNode(NodeType type, QPointF position, QUuid uuid = QUuid::createUuid());
@@ -48,7 +47,7 @@ signals:
     void connectionRemoved(QUuid uuid);
     
 protected:
-    NodeFactory &nodeFactory;
+    NodeFactory *nodeFactory;
     QMap<QUuid, Node*> nodes;
     QMap<QUuid, Connection*> connections;
 };

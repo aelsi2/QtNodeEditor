@@ -2,7 +2,7 @@
 
 #include <QVector>
 
-#include "Core/PortUtils.hpp"
+#include "Core/HelperTypes.hpp"
 
 class PortPolicy
 {

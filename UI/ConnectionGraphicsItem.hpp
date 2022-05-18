@@ -9,6 +9,8 @@ class ConnectionGraphicsItem : public QGraphicsItem
 public:
     ConnectionGraphicsItem();
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    QRectF boundingRect() const override;
+    QPainterPath shape() const override;
     void updatePoints();
 private:
     QUuid uuid;

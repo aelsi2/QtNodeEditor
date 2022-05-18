@@ -3,7 +3,7 @@
 #include <QVector>
 
 #include "Core/Node.hpp"
-#include "Core/PortUtils.hpp"
+#include "Core/HelperTypes.hpp"
 #include "PortPolicy.hpp"
 
 

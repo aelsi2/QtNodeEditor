@@ -4,7 +4,7 @@
 #include <QUuid>
 
 #include "Core/Node.hpp"
-#include "Core/NodeType.hpp"
+#include "Core/HelperTypes.hpp"
 #include "Core/NodeGraph.hpp"
 
 class Node;

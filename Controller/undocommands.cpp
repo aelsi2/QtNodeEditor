@@ -1,15 +1,15 @@
-#include "undocommands.hpp"
+#include "UndoCommands.hpp"
 
-NodeGraphUndoCommand::NodeGraphUndoCommand(NodeGraph &nodeGraph) : graph(nodeGraph) {}
+NodeGraphUndoCommand::NodeGraphUndoCommand(NodeGraph *nodeGraph) : graph(nodeGraph) {}
 
-NodeCreateUndoCommand::NodeCreateUndoCommand(NodeGraph &graph, NodeType nodeType, QPointF position, QJsonValue const &internalState, QUuid uuid)
+NodeCreateUndoCommand::NodeCreateUndoCommand(NodeGraph *graph, NodeType nodeType, QPointF position, QJsonValue const &internalState, QUuid uuid)
     : NodeGraphUndoCommand(graph),
     type(nodeType),
     uuid(uuid),
     pos(position),
     state(internalState) {}
 
-NodeCreateUndoCommand::NodeCreateUndoCommand(NodeGraph &graph, NodeType nodeType, QPointF position, QUuid uuid)
+NodeCreateUndoCommand::NodeCreateUndoCommand(NodeGraph *graph, NodeType nodeType, QPointF position, QUuid uuid)
     : NodeGraphUndoCommand(graph),
     type(nodeType),
     uuid(uuid),
@@ -17,30 +17,30 @@ NodeCreateUndoCommand::NodeCreateUndoCommand(NodeGraph &graph, NodeType nodeType
 
 void NodeCreateUndoCommand::undo()
 {
-    graph.deleteNode(uuid);
+    graph->deleteNode(uuid);
 }
 
 void NodeCreateUndoCommand::redo()
 {
-    graph.createNode(type, pos, uuid);
+    graph->createNode(type, pos, uuid);
     if (!state.has_value()) return;
-    Node *node = graph.getNode(uuid);
+    Node *node = graph->getNode(uuid);
     if (node == nullptr) return;
     node->restoreData(state.value());
 }
 
-NodeDeleteUndoCommand::NodeDeleteUndoCommand(NodeGraph &graph, QUuid uuid, NodeType nodeType, QPointF position, QJsonValue const &internalState)
+NodeDeleteUndoCommand::NodeDeleteUndoCommand(NodeGraph *graph, QUuid uuid, NodeType nodeType, QPointF position, QJsonValue const &internalState)
     : NodeGraphUndoCommand(graph),
     type(nodeType),
     uuid(uuid),
     pos(position),
     state(internalState) {}
 
-NodeDeleteUndoCommand::NodeDeleteUndoCommand(NodeGraph &graph, QUuid uuid)
+NodeDeleteUndoCommand::NodeDeleteUndoCommand(NodeGraph *graph, QUuid uuid)
     : NodeGraphUndoCommand(graph),
     uuid(uuid)
 {
-    Node *node = graph.getNode(uuid);
+    Node *node = graph->getNode(uuid);
     if (node == nullptr) return;
     type = node->type;
     pos = node->getPosition();
@@ -51,18 +51,18 @@ NodeDeleteUndoCommand::NodeDeleteUndoCommand(NodeGraph &graph, QUuid uuid)
 
 void NodeDeleteUndoCommand::undo()
 {
-    graph.createNode(type, pos, uuid);
-    Node *node = graph.getNode(uuid);
+    graph->createNode(type, pos, uuid);
+    Node *node = graph->getNode(uuid);
     if (node == nullptr) return;
     node->restoreData(state);
 }
 
 void NodeDeleteUndoCommand::redo()
 {
-    graph.deleteNode(uuid);
+    graph->deleteNode(uuid);
 }
 
-ConnectUndoCommand::ConnectUndoCommand(NodeGraph &graph, QUuid nodeIdA, QUuid nodeIdB, PortID portIdA, PortID portIdB, QUuid uuid, bool disconnect)
+ConnectUndoCommand::ConnectUndoCommand(NodeGraph *graph, QUuid nodeIdA, QUuid nodeIdB, PortID portIdA, PortID portIdB, QUuid uuid, bool disconnect)
     : NodeGraphUndoCommand(graph),
     connectionId(uuid),
     nodeIdA(nodeIdA),
@@ -71,12 +71,12 @@ ConnectUndoCommand::ConnectUndoCommand(NodeGraph &graph, QUuid nodeIdA, QUuid no
     portIdB(portIdB),
     disconnect(disconnect) {}
 
-ConnectUndoCommand::ConnectUndoCommand(NodeGraph &graph, QUuid uuid)
+ConnectUndoCommand::ConnectUndoCommand(NodeGraph *graph, QUuid uuid)
     : NodeGraphUndoCommand(graph),
     connectionId(uuid),
     disconnect(true)
 {
-    Connection *connection = graph.getConnection(connectionId);
+    Connection *connection = graph->getConnection(connectionId);
     if (connection == nullptr) return;
     nodeIdA = connection->getFirstNodeId();
     nodeIdB = connection->getSecondNodeId();
@@ -87,15 +87,15 @@ ConnectUndoCommand::ConnectUndoCommand(NodeGraph &graph, QUuid uuid)
 void ConnectUndoCommand::undo()
 {
     if (disconnect)
-        graph.connect(nodeIdA, nodeIdB, portIdA, portIdB, connectionId);
+        graph->connect(nodeIdA, nodeIdB, portIdA, portIdB, connectionId);
     else
-        graph.disconnect(connectionId);
+        graph->disconnect(connectionId);
 }
 
 void ConnectUndoCommand::redo()
 {
     if (disconnect)
-        graph.disconnect(connectionId);
+        graph->disconnect(connectionId);
     else
-        graph.connect(nodeIdA, nodeIdB, portIdA, portIdB, connectionId);
+        graph->connect(nodeIdA, nodeIdB, portIdA, portIdB, connectionId);
 }

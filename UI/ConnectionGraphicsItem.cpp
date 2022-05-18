@@ -9,3 +9,13 @@ void ConnectionGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphics
 {
     
 }
+
+QRectF ConnectionGraphicsItem::boundingRect() const
+{
+    
+}
+
+QPainterPath ConnectionGraphicsItem::shape() const
+{
+    
+}

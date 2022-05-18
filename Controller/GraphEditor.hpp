@@ -8,17 +8,15 @@
 #include <QMap>
 
 #include "Core/NodeGraph.hpp"
-//#include "NodeGraphUndoCommands.hpp"
-#include "undocommands.hpp"
-#include "Core/PortUtils.hpp"
-#include "Core/NodeType.hpp"
+#include "UndoCommands.hpp"
+#include "Core/HelperTypes.hpp"
 #include "Core/ConnectAction.hpp"
 #include "Serialization.hpp"
 
-class GraphController
+class GraphEditor
 {
 public:
-    GraphController(NodeGraph *nodeGraph, QUndoStack *undoStack, QClipboard *clipboard);
+    GraphEditor(NodeGraph *nodeGraph, QUndoStack *undoStack, QClipboard *clipboard);
     
     void selectNode(QUuid nodeId);
     void deselectNode(QUuid nodeId);
@@ -27,8 +25,8 @@ public:
     QUuid createNode(NodeType type, QPointF position = QPointF(0, 0));
     void deleteSelection();
     
-    void cutSelectionToClipboard();
-    void copySelectionToClipboard();
+    void cutSelection();
+    void copySelection();
     void pasteClipboard();
     
     bool connectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const;

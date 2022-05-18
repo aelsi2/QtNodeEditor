@@ -1,7 +1,7 @@
 #include "MainWindow.hpp"
 
 #include <QApplication>
-#include "Controller/GraphController.hpp"
+#include "Controller/GraphEditor.hpp"
 
 void NodeCreated(NodeType type, QUuid uuid, Node *node, QPointF position)
 {
@@ -31,16 +31,15 @@ int main(int argc, char *argv[])
     NodeFactory *factory = new NodeFactory();
     factory->addDelegate(0, new AbstractNodeDelegate());
     
-    NodeGraph *graph = new NodeGraph(*factory);
+    NodeGraph *graph = new NodeGraph(factory);
     QObject::connect(graph, &NodeGraph::nodeCreated, &NodeCreated);
     QObject::connect(graph, &NodeGraph::connectionMade, &ConnectionMade);
     QObject::connect(graph, &NodeGraph::nodeDeleted, &nodeDeleted);
     QObject::connect(graph, &NodeGraph::connectionRemoved, &connectionRemoved);
     
     QUndoStack *stack = new QUndoStack();
-    GraphController *controller = new GraphController(graph, stack, QGuiApplication::clipboard());
+    GraphEditor *controller = new GraphEditor(graph, stack, QGuiApplication::clipboard());
     
-    qDebug() << "create";
     QUuid uuid = controller->createNode(0);
     QUuid uuid2 = controller->createNode(0, QPointF(5, 4.5));
     controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
@@ -49,7 +48,7 @@ int main(int argc, char *argv[])
 
     controller->selectNode(uuid);
     controller->selectNode(uuid2);
-    controller->cutSelectionToClipboard();
+    controller->cutSelection();
     controller->pasteClipboard();
     stack->undo();
     stack->undo();
