@@ -1,59 +1,66 @@
 #include "Serialization.hpp"
 
-QJsonObject serializeNode(NodeGraph const &graph, QUuid nodeId)
+SerializedGraph::SerializedGraph() {}
+
+SerializedGraph::SerializedGraph(QJsonDocument const &document)
 {
-    QJsonObject json;
+    serializedNodes = document["nodes"].toArray();
+    serializedConnections = document["connections"].toArray();
+}
+
+void SerializedGraph::addNode(NodeGraph const &graph, QUuid nodeId)
+{
     Node *node = graph.getNode(nodeId);
-    QUuid uuid = node->getUuid();
+    if (node == nullptr) return;
+    
+    QJsonObject json;
     QJsonObject jsonPos;
     
+    QJsonValue jsonCustomData;
+    node->serializeData(jsonCustomData);
+     
     jsonPos["x"] = node->getPosition().x();
     jsonPos["y"] = node->getPosition().y();
     json["position"] = jsonPos;
-    json["uuid"] = uuid.toString();
+    json["uuid"] = nodeId.toString();
     json["type"] = node->type;
-    
-    return json;
+    json["data"] = jsonCustomData;
+    serializedNodes.append(json);
 }
 
-QJsonObject serializeConnection(NodeGraph const &graph, QUuid connectionId)
+void SerializedGraph::addConnection(NodeGraph const &graph, QUuid connectionId)
 {
     Connection *connection = graph.getConnection(connectionId);
-    if (connection == nullptr) return QJsonObject();
+    if (connection == nullptr) return;
+    
+    QUuid nodeIdA = connection->getFirstNodeId();
+    QUuid nodeIdB = connection->getSecondNodeId();
+    PortID portIdA = connection->getFirstPort();
+    PortID portIdB = connection->getSecondPort();
     
     QJsonObject json;
     QJsonObject portAJson;
     QJsonObject portBJson;
-    portAJson["direction"] = (connection->getFirstPort().direction == PortDirection::IN) ? 0 : 1;
-    portAJson["index"] = connection->getFirstPort().index;
     
-    portBJson["direction"] = (connection->getSecondPort().direction == PortDirection::IN) ? 0 : 1;
-    portBJson["index"] = connection->getSecondPort().index;
-    
-    QUuid nodeIdA = connection->getFirstNodeId();
-    QUuid nodeIdB = connection->getSecondNodeId();
-    
+    portAJson["direction"] = (portIdA.direction == PortDirection::IN) ? 0 : 1;
+    portAJson["index"] = portIdA.index;
+    portBJson["direction"] = (portIdB.direction == PortDirection::IN) ? 0 : 1;
+    portBJson["index"] = portIdB.index;
     json["uuid"] = connection->getUuid().toString();
     json["nodeIdA"] = nodeIdA.toString();
     json["nodeIdB"] = nodeIdB.toString();
     json["portIdA"] = portAJson;
     json["portIdB"] = portBJson;
-    
-    return json;
+    serializedConnections.append(json);
 }
 
-QUuid restoreNode(NodeGraph& graph, QJsonObject const &json, bool newId, QMap<QUuid, QUuid> *uuidMap)
+SerializedGraph::NodeData SerializedGraph::deserializeNode(QJsonObject const &json, bool newId, QMap<QUuid, QUuid> *uuidMap) const
 {
-    QUuid uuid;
-    QPointF pos = QPointF(0, 0);
-    NodeType nodeType = NodeType();
-    QJsonValue data = QJsonObject();
+    NodeData nd;
     
-    uuid = QUuid(json["uuid"].toString());
-    
-    
+    nd.uuid = QUuid(json["uuid"].toString());
     if (json["type"].isDouble()) 
-        nodeType = json["type"].toInt();
+        nd.type = json["type"].toInt();
     QJsonValue jsonPos = json["position"];
     if (jsonPos.isObject())
     {
@@ -61,83 +68,80 @@ QUuid restoreNode(NodeGraph& graph, QJsonObject const &json, bool newId, QMap<QU
         QJsonValue jsonY = jsonPos["y"];
         if (jsonX.isDouble() && jsonY.isDouble())
         {
-            pos.setX(jsonX.toDouble());
-            pos.setY(jsonY.toDouble());
+            nd.pos.setX(jsonX.toDouble());
+            nd.pos.setY(jsonY.toDouble());
         }
     }
-    if (!json["data"].isUndefined()) data = json["data"];
+    if (!json["data"].isUndefined()) nd.data = json["data"];
     
-    
-    
-    if (uuid == QUuid()) uuid = QUuid::createUuid();
+    if (nd.uuid == QUuid())
+    {
+        nd.uuid = QUuid::createUuid();
+    }
     else if (newId)
     {
-        QUuid newUuid = QUuid::createUuid();
-        if (uuidMap != nullptr) uuidMap->insert(uuid, newUuid);
-        uuid = newUuid;
+        QUuid newId = QUuid::createUuid();
+        if (uuidMap != nullptr) uuidMap->insert(nd.uuid, newId);
+        nd.uuid = newId;
     }
-    else
-    {
-        Node *node = graph.getNode(uuid);
-        if (node != nullptr) return uuid;
-    }
-    
-    graph.createNode(nodeType, pos, uuid);
-    graph.getNode(uuid)->restoreData(data);
-    return uuid;
+    return nd;
 }
 
-QUuid restoreConnection(NodeGraph& graph, QJsonObject const &json, bool newId, QMap<QUuid, QUuid> const *nodeUuidLookup)
+SerializedGraph::ConnectionData SerializedGraph::deserializeConnection(const QJsonObject &json, bool newId, QMap<QUuid, QUuid> const *nodeUuidLookup) const
 {
-    QJsonValue jsonUuid = json["uuid"];
-    QJsonValue jsonNodeIdA = json["nodeIdA"];
-    QJsonValue jsonNodeIdB = json["nodeIdB"];
-    QJsonValue jsonPortA = json["portIdA"];
-    QJsonValue jsonPortB = json["portIdB"];
+    ConnectionData cd;
+    cd.uuid = QUuid(json["uuid"].toString());
     
-    if (!jsonNodeIdA.isString() || !jsonNodeIdB.isString()) return QUuid();
-    if (!jsonPortA.isObject() || !jsonPortB.isObject()) return QUuid();
+    cd.nodeIdA = QUuid(json["nodeIdA"].toString());
+    cd.nodeIdB = QUuid(json["nodeIdB"].toString());
+    if (cd.nodeIdA == QUuid() || cd.nodeIdB == QUuid()) return ConnectionData();
     
-    QJsonValue jsonDirectionA = jsonPortA["direction"];
-    QJsonValue jsonDirectionB = jsonPortB["direction"];
-    QJsonValue jsonIndexA = jsonPortA["index"];
-    QJsonValue jsonIndexB = jsonPortB["index"];
-    
-    if (!jsonIndexA.isDouble() || !jsonIndexB.isDouble()) return QUuid();
-    if (!jsonDirectionA.isDouble() || !jsonDirectionB.isDouble()) return QUuid();
-    
-    
-    QUuid uuid  = QUuid(jsonUuid.toString());
-    if (newId || uuid == QUuid()) uuid = QUuid::createUuid();
-    
-    QUuid nodeIdA = QUuid(jsonNodeIdA.toString());
-    QUuid nodeIdB = QUuid(jsonNodeIdB.toString());
+    QJsonValue jsonDirectionA = json["portIdA"]["direction"];
+    QJsonValue jsonDirectionB = json["portIdB"]["direction"];
+    if (!jsonDirectionA.isDouble() || !jsonDirectionB.isDouble()) return ConnectionData();
+    QJsonValue jsonIndexA = json["portIdA"]["index"];
+    QJsonValue jsonIndexB = json["portIdB"]["index"]; 
+    if (!jsonIndexA.isDouble() || !jsonIndexB.isDouble()) return ConnectionData();
     
     if (nodeUuidLookup != nullptr)
     {
-        nodeIdA = nodeUuidLookup->value(nodeIdA, nodeIdA);
-        nodeIdB = nodeUuidLookup->value(nodeIdB, nodeIdB);
+        cd.nodeIdA = nodeUuidLookup->value(cd.nodeIdA, cd.nodeIdA);
+        cd.nodeIdB = nodeUuidLookup->value(cd.nodeIdB, cd.nodeIdB);
     }
+    cd.portIdA = PortID(jsonDirectionA.toInt() == 0 ? PortDirection::IN : PortDirection::OUT, jsonIndexA.toInt());
+    cd.portIdB = PortID(jsonDirectionB.toInt() == 0 ? PortDirection::IN : PortDirection::OUT, jsonIndexB.toInt());
     
-    PortID portIdA = PortID(jsonDirectionA.toInt() == 0 ? PortDirection::IN : PortDirection::OUT, jsonIndexA.toInt());
-    PortID portIdB = PortID(jsonDirectionB.toInt() == 0 ? PortDirection::IN : PortDirection::OUT, jsonIndexB.toInt());
-    
-    return graph.connect(nodeIdA, nodeIdB, portIdA, portIdB, uuid);
+    if (cd.uuid == QUuid())
+    {
+        cd.uuid = QUuid::createUuid();
+    }
+    else if (newId)
+    {
+        QUuid newId = QUuid::createUuid();
+        cd.uuid = newId;
+    }
+    return cd;
 }
 
-void restoreSubgraph(NodeGraph& graph, QJsonObject const &json, QSet<QUuid> *nodes, QSet<QUuid> *connections)
+int SerializedGraph::nodeCount() { return serializedNodes.count(); }
+int SerializedGraph::connectionCount() { return serializedConnections.count(); }
+
+SerializedGraph::NodeData SerializedGraph::getNode(int index, bool newId, QMap<QUuid, QUuid> *uuidMap)
 {
-    QJsonArray serializedNodes = json["nodes"].toArray();
-    QJsonArray serializedConnections = json["connections"].toArray();
-    QMap<QUuid, QUuid> nodeUuidRemappings;
-    for (auto i = serializedNodes.begin(); i != serializedNodes.end(); ++i)
-    {
-        QUuid uuid = restoreNode(graph, i->toObject(), true, &nodeUuidRemappings);
-        if (nodes != nullptr) nodes->insert(uuid);
-    }
-    for (auto i = serializedConnections.begin(); i != serializedConnections.end(); ++i)
-    {
-        QUuid uuid = restoreConnection(graph, i->toObject(), true, &nodeUuidRemappings);
-        if (connections != nullptr) connections->insert(uuid);
-    }
+    if (index >= nodeCount()) return NodeData();
+    return deserializeNode(serializedNodes[index].toObject(), newId, uuidMap);
+}
+
+SerializedGraph::ConnectionData SerializedGraph::getConnection(int index, bool newId, QMap<QUuid, QUuid> const *nodeUuidLookup)
+{
+    if (index >= connectionCount()) return ConnectionData();
+    return deserializeConnection(serializedConnections[index].toObject(), newId, nodeUuidLookup);
+}
+
+QJsonDocument SerializedGraph::jsonDocument() const
+{
+    QJsonObject json;
+    json["nodes"] = serializedNodes;
+    json["connections"] = serializedConnections;
+    return QJsonDocument(json);
 }

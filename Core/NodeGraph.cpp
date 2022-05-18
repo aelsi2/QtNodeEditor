@@ -1,18 +1,18 @@
 #include "NodeGraph.hpp"
 
-NodeGraph::NodeGraph(NodeFactory *nodeFactory) : nodeFactory(nodeFactory) {}
+NodeGraph::NodeGraph(NodeFactory &nodeFactory) : nodeFactory(nodeFactory) {}
 
 void NodeGraph::moveNodeTo(QUuid uuid, QPointF newPosition)
 {
     if (!nodes.contains(uuid)) return;
-    nodes.value(uuid)->updatePosition(newPosition);
+    nodes.value(uuid)->moveTo(newPosition);
     emit nodeMoved(uuid, newPosition);
 }
 
 QUuid NodeGraph::createNode(NodeType type, QPointF position, QUuid uuid)
 {
     if (nodes.contains(uuid)) return uuid;
-    Node *node = nodeFactory->createNode(type, this, position, uuid);
+    Node *node = nodeFactory.createNode(type, this, position, uuid);
     nodes.insert(uuid, node);
     emit nodeCreated(type, uuid, node, position);
     return uuid;

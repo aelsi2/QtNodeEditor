@@ -11,11 +11,12 @@ CONFIG += c++11
 SOURCES += \
     Controller/GraphController.cpp \
     Controller/Serialization.cpp \
+    Controller/undocommands.cpp \
+    #Controller/NodeGraphUndoCommands.cpp \
     Core/ConnectAction.cpp \
     Core/Connection.cpp \
     Core/Node.cpp \
     Core/NodeFactory.cpp \
-    Controller/NodeGraphUndoCommands.cpp \
     Utils/Port.cpp \
     Utils/PortPolicy.cpp \
     UI/ConnectionGraphicsItem.cpp \
@@ -29,11 +30,12 @@ SOURCES += \
 HEADERS += \
     Controller/GraphController.hpp \
     Controller/Serialization.hpp \
+    Controller/undocommands.hpp \
+    #Controller/NodeGraphUndoCommands.hpp \
     Core/ConnectAction.hpp \
     Core/Connection.hpp \
     Core/Node.hpp \
     Core/NodeFactory.hpp \
-    Controller/NodeGraphUndoCommands.hpp \
     Core/NodeType.hpp \
     Core/PortUtils.hpp \
     Utils/Port.hpp \

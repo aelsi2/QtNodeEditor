@@ -14,18 +14,28 @@ void ConnectionMade(QUuid uuid, Connection *connection,
     qDebug() << "connection made:" << uuid << "\nA:" << firstNode.toString() << "B:" << secondNode.toString() << "\n";
 }
 
+void nodeDeleted(QUuid uuid)
+{
+    qDebug() << "node deleted:" << uuid;
+}
+
+void connectionRemoved(QUuid uuid)
+{
+    qDebug() << "connection removed" << uuid;
+}
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     
-    //I will set up proper tests later...
-    //...probably
     NodeFactory *factory = new NodeFactory();
     factory->addDelegate(0, new AbstractNodeDelegate());
     
-    NodeGraph *graph = new NodeGraph(factory);
+    NodeGraph *graph = new NodeGraph(*factory);
     QObject::connect(graph, &NodeGraph::nodeCreated, &NodeCreated);
     QObject::connect(graph, &NodeGraph::connectionMade, &ConnectionMade);
+    QObject::connect(graph, &NodeGraph::nodeDeleted, &nodeDeleted);
+    QObject::connect(graph, &NodeGraph::connectionRemoved, &connectionRemoved);
     
     QUndoStack *stack = new QUndoStack();
     GraphController *controller = new GraphController(graph, stack, QGuiApplication::clipboard());
@@ -33,18 +43,16 @@ int main(int argc, char *argv[])
     qDebug() << "create";
     QUuid uuid = controller->createNode(0);
     QUuid uuid2 = controller->createNode(0, QPointF(5, 4.5));
-    //controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
+    controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
     //controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 1));
     //controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 2));
 
     controller->selectNode(uuid);
     controller->selectNode(uuid2);
-    qDebug() << "cut";
     controller->cutSelectionToClipboard();
-    qDebug() << "undo";
-    stack->undo();
-    qDebug() << "paste";
     controller->pasteClipboard();
+    stack->undo();
+    stack->undo();
     
     MainWindow w;
     w.show();

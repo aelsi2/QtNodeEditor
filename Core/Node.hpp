@@ -23,7 +23,7 @@ public:
     Node(NodeGraph &graph, NodeType type);
     
     bool hasConnections() const;
-    void updatePosition(QPointF newPosition);
+    void moveTo(QPointF newPosition);
     void addConnection(QUuid connectionId, PortID portId, Connection *connection);
     void removeConnection(QUuid connectionId, PortID portId);
     void removeConnection(QUuid connectionId); //Should only be used before the connection object gets deleted

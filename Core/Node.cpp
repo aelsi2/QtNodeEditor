@@ -18,7 +18,7 @@ bool Node::hasConnections() const
     return connections.size() != 0;
 }
 
-void Node::updatePosition(QPointF newPosition)
+void Node::moveTo(QPointF newPosition)
 {
     position = newPosition;
 }

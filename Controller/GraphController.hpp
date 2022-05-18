@@ -8,7 +8,8 @@
 #include <QMap>
 
 #include "Core/NodeGraph.hpp"
-#include "NodeGraphUndoCommands.hpp"
+//#include "NodeGraphUndoCommands.hpp"
+#include "undocommands.hpp"
 #include "Core/PortUtils.hpp"
 #include "Core/NodeType.hpp"
 #include "Core/ConnectAction.hpp"
@@ -24,7 +25,7 @@ public:
     void clearSelection();
     
     QUuid createNode(NodeType type, QPointF position = QPointF(0, 0));
-    QJsonObject deleteSelection();
+    void deleteSelection();
     
     void cutSelectionToClipboard();
     void copySelectionToClipboard();
@@ -33,10 +34,10 @@ public:
     bool connectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const;
     void performConnectAction(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB);
     
-    QJsonObject serializeGraph();
-    void deserializeGraph(QJsonObject json);
-    
 private:
+    
+    void getConnectionsBetween(QSet<QUuid> const &nodes, QSet<QUuid> &connections);
+    
     NodeGraph *graph;
     QUndoStack *undoStack;
     QClipboard *clipboard;
