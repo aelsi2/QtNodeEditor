@@ -1,13 +1,13 @@
 #include "Node.hpp"
 
-Node::Node(NodeGraph &graph, NodeType type, QPointF position, QUuid uuid)
+Node::Node(NodeGraph *graph, NodeType type, QPointF position, QUuid uuid)
     : type(type), graph(graph), uuid(uuid), position(position) {}
 
-Node::Node(NodeGraph &graph, NodeType type)
+Node::Node(NodeGraph *graph, NodeType type)
     : type(type), graph(graph), uuid(), position(0.0, 0.0) {}
 
 QUuid Node::getUuid() const { return uuid; }
-NodeGraph& Node::getGraph() const { return graph; }
+NodeGraph* Node::getGraph() const { return graph; }
 QPointF Node::getPosition() const { return position; }
 
 QMap<QUuid, Connection*>::const_iterator Node::connectionsConstBegin() const { return connections.constBegin(); }

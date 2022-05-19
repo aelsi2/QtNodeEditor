@@ -2,12 +2,12 @@
 
 NodeGraphUndoCommand::NodeGraphUndoCommand(NodeGraph *nodeGraph) : graph(nodeGraph) {}
 
-NodeCreateUndoCommand::NodeCreateUndoCommand(NodeGraph *graph, NodeType nodeType, QPointF position, QJsonValue const &internalState, QUuid uuid)
+NodeCreateUndoCommand::NodeCreateUndoCommand(NodeGraph *graph, NodeType nodeType, QPointF position, QJsonValue const &internalData, QUuid uuid)
     : NodeGraphUndoCommand(graph),
     type(nodeType),
     uuid(uuid),
     pos(position),
-    state(internalState) {}
+    data(internalData) {}
 
 NodeCreateUndoCommand::NodeCreateUndoCommand(NodeGraph *graph, NodeType nodeType, QPointF position, QUuid uuid)
     : NodeGraphUndoCommand(graph),
@@ -23,18 +23,18 @@ void NodeCreateUndoCommand::undo()
 void NodeCreateUndoCommand::redo()
 {
     graph->createNode(type, pos, uuid);
-    if (!state.has_value()) return;
+    if (!data.has_value()) return;
     Node *node = graph->getNode(uuid);
     if (node == nullptr) return;
-    node->restoreData(state.value());
+    node->restoreData(data.value());
 }
 
-NodeDeleteUndoCommand::NodeDeleteUndoCommand(NodeGraph *graph, QUuid uuid, NodeType nodeType, QPointF position, QJsonValue const &internalState)
+NodeDeleteUndoCommand::NodeDeleteUndoCommand(NodeGraph *graph, QUuid uuid, NodeType nodeType, QPointF position, QJsonValue const &internalData)
     : NodeGraphUndoCommand(graph),
     type(nodeType),
     uuid(uuid),
     pos(position),
-    state(internalState) {}
+    data(internalData) {}
 
 NodeDeleteUndoCommand::NodeDeleteUndoCommand(NodeGraph *graph, QUuid uuid)
     : NodeGraphUndoCommand(graph),
@@ -46,7 +46,7 @@ NodeDeleteUndoCommand::NodeDeleteUndoCommand(NodeGraph *graph, QUuid uuid)
     pos = node->getPosition();
     QJsonValue json;
     node->serializeData(json);
-    state = json;
+    data = json;
 }
 
 void NodeDeleteUndoCommand::undo()
@@ -54,7 +54,7 @@ void NodeDeleteUndoCommand::undo()
     graph->createNode(type, pos, uuid);
     Node *node = graph->getNode(uuid);
     if (node == nullptr) return;
-    node->restoreData(state);
+    node->restoreData(data);
 }
 
 void NodeDeleteUndoCommand::redo()

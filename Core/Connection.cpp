@@ -1,6 +1,6 @@
 #include "Connection.hpp"
 
-Connection::Connection(NodeGraph &graph, 
+Connection::Connection(NodeGraph *graph, 
                        QUuid firstNode, QUuid secondNode, 
                        PortID firstPort, PortID secondPort) 
     : graph(graph),
@@ -10,7 +10,7 @@ Connection::Connection(NodeGraph &graph,
       portIdA(firstPort), 
       portIdB(secondPort) {}
 
-Connection::Connection(NodeGraph &graph, 
+Connection::Connection(NodeGraph *graph, 
                        QUuid firstNode, QUuid secondNode, 
                        PortID firstPort, PortID secondPort, QUuid uuid) 
     : graph(graph),
@@ -20,8 +20,8 @@ Connection::Connection(NodeGraph &graph,
       portIdA(firstPort), 
       portIdB(secondPort) {}
 
-Node* Connection::getFirstNode() const { return graph.getNode(nodeIdA); }
-Node* Connection::getSecondNode() const { return graph.getNode(nodeIdB); }
+Node* Connection::getFirstNode() const { return graph->getNode(nodeIdA); }
+Node* Connection::getSecondNode() const { return graph->getNode(nodeIdB); }
 
 QUuid Connection::getFirstNodeId() const { return nodeIdA; }
 QUuid Connection::getSecondNodeId() const { return nodeIdB; }
@@ -60,5 +60,5 @@ bool Connection::contains(QUuid nodeId, PortID portId) const
     return false;
 }
 
-NodeGraph& Connection::getGraph() const { return graph;}
+NodeGraph* Connection::getGraph() const { return graph;}
 QUuid Connection::getUuid() const { return uuid;}

@@ -62,7 +62,7 @@ QUuid NodeGraph::connect(QUuid nodeIdA, QUuid nodeIdB,
     Node *nodeA = nodes.value(nodeIdA);
     Node *nodeB = nodes.value(nodeIdB);
     
-    Connection *connection = new Connection(*this, nodeIdA, nodeIdB, portIdA, portIdB, connectionId);
+    Connection *connection = new Connection(this, nodeIdA, nodeIdB, portIdA, portIdB, connectionId);
     connections.insert(connectionId, connection);
     
     nodeA->addConnection(connectionId, portIdA, connection);

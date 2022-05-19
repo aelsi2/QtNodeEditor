@@ -19,7 +19,7 @@ protected:
 class NodeCreateUndoCommand : public NodeGraphUndoCommand
 {
 public:
-    NodeCreateUndoCommand(NodeGraph *graph, NodeType nodeType, QPointF position, QJsonValue const &internalState, QUuid uuid  = QUuid::createUuid());
+    NodeCreateUndoCommand(NodeGraph *graph, NodeType nodeType, QPointF position, QJsonValue const &internalData, QUuid uuid  = QUuid::createUuid());
     NodeCreateUndoCommand(NodeGraph *graph, NodeType nodeType, QPointF position, QUuid uuid  = QUuid::createUuid());
     void undo() override;
     void redo() override;
@@ -28,13 +28,13 @@ private:
     NodeType type;
     QUuid uuid;
     QPointF pos;
-    std::optional<QJsonValue> state;
+    std::optional<QJsonValue> data;
 };
 
 class NodeDeleteUndoCommand : public NodeGraphUndoCommand
 {
 public:
-    NodeDeleteUndoCommand(NodeGraph *graph, QUuid uuid, NodeType nodeType, QPointF position, QJsonValue const &state);
+    NodeDeleteUndoCommand(NodeGraph *graph, QUuid uuid, NodeType nodeType, QPointF position, QJsonValue const &internalData);
     NodeDeleteUndoCommand(NodeGraph *graph, QUuid uuid);
     void undo() override;
     void redo() override;
@@ -42,7 +42,7 @@ private:
     NodeType type;
     QUuid uuid;
     QPointF pos;
-    QJsonValue state;
+    QJsonValue data;
 };
 
 class ConnectUndoCommand : public NodeGraphUndoCommand

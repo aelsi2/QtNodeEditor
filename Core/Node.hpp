@@ -19,8 +19,8 @@ class Node : public QObject
 {
     Q_OBJECT  
 public:
-    Node(NodeGraph &graph, NodeType type, QPointF position, QUuid uuid);
-    Node(NodeGraph &graph, NodeType type);
+    Node(NodeGraph *graph, NodeType type, QPointF position, QUuid uuid);
+    Node(NodeGraph *graph, NodeType type);
     
     bool hasConnections() const;
     void moveTo(QPointF newPosition);
@@ -40,7 +40,7 @@ public:
     QMap<QUuid, Connection*>::const_iterator connectionsConstEnd() const;
     
     QUuid getUuid() const;
-    NodeGraph& getGraph() const;
+    NodeGraph* getGraph() const;
     QPointF getPosition() const;
     
     const NodeType type;
@@ -51,7 +51,7 @@ protected:
     virtual void onConnectionRemoved(QUuid connectionId, PortID portId);
     
     QMap<QUuid, Connection*> connections;
-    NodeGraph &graph;
+    NodeGraph *graph;
     QUuid uuid;
     QPointF position;
 };

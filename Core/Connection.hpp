@@ -12,10 +12,10 @@ class NodeGraph;
 class Connection
 {
 public:
-    Connection(NodeGraph &graph,
+    Connection(NodeGraph *graph,
                QUuid firstNode, QUuid secondNode,
                PortID firstPort, PortID secondPort, QUuid uuid);
-    Connection(NodeGraph &graph,
+    Connection(NodeGraph *graph,
                QUuid firstNode, QUuid secondNode,
                PortID firstPort, PortID secondPort);
     
@@ -35,11 +35,11 @@ public:
     
     bool contains(QUuid nodeId, PortID portId) const;
     
-    NodeGraph& getGraph() const;
+    NodeGraph* getGraph() const;
     QUuid getUuid() const;
     
 private:
-    NodeGraph &graph;
+    NodeGraph *graph;
     QUuid uuid;
     
     QUuid nodeIdA;
