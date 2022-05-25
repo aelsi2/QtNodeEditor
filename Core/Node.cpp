@@ -10,8 +10,7 @@ QUuid Node::getUuid() const { return uuid; }
 NodeGraph* Node::getGraph() const { return graph; }
 QPointF Node::getPosition() const { return position; }
 
-QMap<QUuid, Connection*>::const_iterator Node::connectionsConstBegin() const { return connections.constBegin(); }
-QMap<QUuid, Connection*>::const_iterator Node::connectionsConstEnd() const { return connections.constEnd(); }
+QMap<QUuid, Connection*> const & Node::getConnections() const { return connections; }
 
 bool Node::hasConnections() const
 {
@@ -50,6 +49,15 @@ PortDataType Node::getPortDataType(PortID portId) const
 {
     Q_UNUSED(portId)
     return PortDataType();
+}
+
+QUuid Node::getPortConnection(PortID portId) const
+{
+    for (auto i = connections.constBegin(); i != connections.constEnd(); i++)
+    {
+        if (i.value()->getThisPort(uuid) == portId) return i.key();
+    }
+    return QUuid();
 }
 
 bool Node::connectable(PortID portId,

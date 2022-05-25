@@ -32,7 +32,8 @@ public:
     };
     
     SerializedGraph();
-    SerializedGraph(QJsonDocument const &document);
+    SerializedGraph(QJsonDocument const & document);
+    SerializedGraph(QString const & string);
     //SerializedGraph(NodeGraph const &nodeGraph);
     
     int nodeCount();
@@ -45,6 +46,7 @@ public:
     void addConnection(NodeGraph const &graph, QUuid connectionId);
     
     QJsonDocument jsonDocument() const;
+    QString toString() const;
     
 private:
     

@@ -2,7 +2,7 @@
 
 Node* AbstractNodeDelegate::createNode(NodeType type, NodeGraph *graph, QPointF position, QUuid uuid) const
 {
-    return new Node(*graph, type, position, uuid);
+    return new Node(graph, type, position, uuid);
 }
 
 void NodeFactory::addDelegate(NodeType type, NodeFactoryDelegate *delegate)

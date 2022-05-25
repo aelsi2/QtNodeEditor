@@ -8,6 +8,13 @@ SerializedGraph::SerializedGraph(QJsonDocument const &document)
     serializedConnections = document["connections"].toArray();
 }
 
+SerializedGraph::SerializedGraph(QString const & string)
+{
+    auto document = QJsonDocument::fromJson(string.toUtf8());
+    serializedNodes = document["nodes"].toArray();
+    serializedConnections = document["connections"].toArray();
+}
+
 void SerializedGraph::addNode(NodeGraph const &graph, QUuid nodeId)
 {
     Node *node = graph.getNode(nodeId);
@@ -144,4 +151,9 @@ QJsonDocument SerializedGraph::jsonDocument() const
     json["nodes"] = serializedNodes;
     json["connections"] = serializedConnections;
     return QJsonDocument(json);
+}
+
+QString SerializedGraph::toString() const
+{
+    return jsonDocument().toJson(QJsonDocument::Compact);
 }

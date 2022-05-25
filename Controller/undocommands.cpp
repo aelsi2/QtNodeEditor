@@ -99,3 +99,31 @@ void ConnectUndoCommand::redo()
     else
         graph->connect(nodeIdA, nodeIdB, portIdA, portIdB, connectionId);
 }
+
+NodeMoveUndoCommand::NodeMoveUndoCommand(NodeGraph *graph, QUuid nodeId, QPointF oldPos, QPointF newPos, bool relative)
+    : NodeGraphUndoCommand(graph),
+    uuid(nodeId),
+    oldPos(oldPos)
+{
+    if (relative) this->newPos = oldPos + newPos;
+    else this->newPos = newPos;
+}
+
+NodeMoveUndoCommand::NodeMoveUndoCommand(NodeGraph *graph, QUuid nodeId, QPointF newPos, bool relative)
+    : NodeGraphUndoCommand(graph),
+    uuid(nodeId)
+{
+    oldPos = graph->getNode(uuid)->getPosition();
+    if (relative) this->newPos = oldPos + newPos;
+    else this->newPos = newPos;
+}
+
+void NodeMoveUndoCommand::undo()
+{
+    graph->getNode(uuid)->moveTo(oldPos);
+}
+
+void NodeMoveUndoCommand::redo()
+{
+    graph->getNode(uuid)->moveTo(newPos);
+}

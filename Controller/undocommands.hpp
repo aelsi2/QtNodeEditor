@@ -61,4 +61,15 @@ private:
     bool disconnect;
 };
 
-
+class NodeMoveUndoCommand : public NodeGraphUndoCommand
+{
+public:
+    NodeMoveUndoCommand(NodeGraph *graph, QUuid nodeId, QPointF oldPos, QPointF newPos, bool relative = false);
+    NodeMoveUndoCommand(NodeGraph *graph, QUuid nodeId, QPointF newPos, bool relative = true);
+    void undo() override;
+    void redo() override;
+private:
+    QUuid uuid;
+    QPointF oldPos;
+    QPointF newPos;
+};

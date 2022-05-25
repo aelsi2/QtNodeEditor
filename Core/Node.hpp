@@ -28,16 +28,15 @@ public:
     void removeConnection(QUuid connectionId, PortID portId);
     void removeConnection(QUuid connectionId); //Should only be used before the connection object gets deleted
     
-    //Intended to be overriden but some default implementations are provided
     virtual PortDataType getPortDataType(PortID portId) const;
-    virtual bool connectable(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const; //Default implementation relies on getConnectionAction(...)
+    virtual QUuid getPortConnection(PortID portId) const;
+    
+    virtual bool connectable(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const; //Default implementation relies on getConnect5Action(...)
     virtual ConnectAction getConnectAction(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const;
     virtual void serializeData(QJsonValue &json) const;
     virtual void restoreData(const QJsonValue &json);
     
-    //Const iterators for node connections
-    QMap<QUuid, Connection*>::const_iterator connectionsConstBegin() const;
-    QMap<QUuid, Connection*>::const_iterator connectionsConstEnd() const;
+    QMap<QUuid, Connection*> const & getConnections() const;
     
     QUuid getUuid() const;
     NodeGraph* getGraph() const;
