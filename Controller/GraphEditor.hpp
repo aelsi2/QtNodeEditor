@@ -11,7 +11,6 @@
 #include "Core/NodeGraph.hpp"
 #include "UndoCommands.hpp"
 #include "Core/HelperTypes.hpp"
-#include "Core/ConnectAction.hpp"
 #include "Serialization.hpp"
 
 struct ConnectionDragAction
@@ -30,14 +29,13 @@ struct ConnectionDragAction
 class GraphEditor
 {
 public:
-    GraphEditor(NodeGraph *nodeGraph, QUndoStack *undoStack, QClipboard *clipboard);
+    GraphEditor(NodeGraph * nodeGraph, QUndoStack * undoStack, QClipboard * clipboard);
     
     virtual void selectNode(QUuid nodeId);
     virtual void deselectNode(QUuid nodeId);
     virtual void clearSelection();
     
     virtual void moveSelection(QPointF delta);
-    void removeConnections(QVector<QUuid> connectionIds);
     
     virtual QUuid createNode(NodeType type, QPointF position = QPointF(0, 0));
     virtual void deleteSelection();
@@ -48,12 +46,14 @@ public:
     
     virtual bool getConnectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const;
     virtual ConnectionDragAction getDragAction(QUuid nodeId, PortID portId) const;
-    virtual void performConnectAction(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB);
+    
+    virtual void connect(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB);
+    virtual void removeConnections(QVector<QUuid> const & connectionIds);
     
 protected:
     
-    void getConnectionsBetween(QSet<QUuid> const &nodes, QSet<QUuid> &connections);
-    void beginMacro(QString const &name);
+    void getConnectionsBetween(QSet<QUuid> const & nodes, QSet<QUuid> & connections);
+    void beginMacro(QString const & name);
     void endMacro();
     void doCreateNode(NodeType type, QPointF position, QUuid uuid);
     void doCreateConnection(QUuid nodeIdA, QUuid nodeIdB, PortID portIdA, PortID portIdB);
@@ -63,11 +63,11 @@ protected:
     void setClipboard(QString const & text);
     QString getClipboard() const;
     
-    NodeGraph *graph;
+    NodeGraph * graph;
     QSet<QUuid> selection;
     
 private:
-    QUndoStack *undoStack;
-    QClipboard *clipboard;
+    QUndoStack * undoStack;
+    QClipboard * clipboard;
 };
 

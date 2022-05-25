@@ -2,7 +2,7 @@
 
 enum class PortDirection
 {
-    IN, OUT
+    IN, OUT, INOUT
 };
 
 typedef int PortDataType;

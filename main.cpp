@@ -38,18 +38,19 @@ int main(int argc, char *argv[])
     QObject::connect(graph, &NodeGraph::connectionRemoved, &connectionRemoved);
     
     QUndoStack *stack = new QUndoStack();
-    GraphEditor *controller = new GraphEditor(graph, stack, QGuiApplication::clipboard());
+    GraphEditor *editor = new GraphEditor(graph, stack, QGuiApplication::clipboard());
     
-    QUuid uuid = controller->createNode(0);
-    QUuid uuid2 = controller->createNode(0, QPointF(5, 4.5));
-    controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
-    //controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 1));
-    //controller->performConnectAction(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 2));
+    QUuid uuid = editor->createNode(0);
+    QUuid uuid2 = editor->createNode(0, QPointF(5, 4.5));
+    QUuid uuid3 = editor->createNode(0, QPointF(5, 6.3));
+    editor->connect(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
+    editor->connect(uuid3, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
 
-    controller->selectNode(uuid);
-    controller->selectNode(uuid2);
-    controller->cutSelection();
-    controller->pasteClipboard();
+    editor->selectNode(uuid);
+    editor->selectNode(uuid2);
+    editor->selectNode(uuid3);
+    editor->cutSelection();
+    editor->pasteClipboard();
     stack->undo();
     stack->undo();
     

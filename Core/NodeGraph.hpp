@@ -8,7 +8,6 @@
 
 #include "Node.hpp"
 #include "Connection.hpp"
-#include "ConnectAction.hpp"
 #include "HelperTypes.hpp"
 #include "NodeFactory.hpp"
 
@@ -25,10 +24,6 @@ public:
     void moveNodeTo(QUuid uuid, QPointF newPosition);
     QUuid createNode(NodeType type, QPointF position, QUuid uuid = QUuid::createUuid());
     void deleteNode(QUuid uuid);
-    bool connectable(QUuid nodeIdA, QUuid nodeIdB, 
-                     PortID portIdA, PortID portIdB) const;
-    ConnectAction::Pair getConnectActions(QUuid nodeIdA, QUuid nodeIdB,
-                                   PortID portIdA, PortID portIdB) const;
     
     QUuid connect(QUuid nodeIdA, QUuid NodeIdB,
                  PortID portIdA, PortID portIdB, QUuid connectionId = QUuid::createUuid());
@@ -47,7 +42,7 @@ signals:
     void connectionRemoved(QUuid uuid);
     
 protected:
-    NodeFactory *nodeFactory;
+    NodeFactory * nodeFactory;
     QMap<QUuid, Node*> nodes;
     QMap<QUuid, Connection*> connections;
 };

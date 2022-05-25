@@ -28,33 +28,6 @@ void NodeGraph::deleteNode(QUuid uuid)
     return;
 }
 
-bool NodeGraph::connectable(QUuid nodeIdA, QUuid nodeIdB, 
-                            PortID portIdA, PortID portIdB) const
-{
-    if (!nodes.contains(nodeIdA) || !nodes.contains(nodeIdB)) return false;
-    Node *nodeA = nodes.value(nodeIdA);
-    Node *nodeB = nodes.value(nodeIdB);
-    //if (portIdA.direction == portIdB.direction) return false;
-    PortDataType portTypeA = nodeA->getPortDataType(portIdA);
-    PortDataType portTypeB = nodeB->getPortDataType(portIdB);
-    if (!nodeA->connectable(portIdA, nodeIdB, portIdB, portTypeB)) return false;
-    if (!nodeB->connectable(portIdB, nodeIdA, portIdA, portTypeA)) return false;
-    return true;
-}
-
-ConnectAction::Pair NodeGraph::getConnectActions(QUuid nodeIdA, QUuid nodeIdB, PortID portIdA, PortID portIdB) const
-{
-    if (!nodes.contains(nodeIdA) || !nodes.contains(nodeIdB)) return ConnectAction::Pair{ConnectAction::Nothing, ConnectAction::Nothing};
-     Node *nodeA = nodes.value(nodeIdA);
-     Node *nodeB = nodes.value(nodeIdB);
-     PortDataType portTypeA = nodeA->getPortDataType(portIdA);
-     PortDataType portTypeB = nodeB->getPortDataType(portIdB);
-     return ConnectAction::Pair{
-         nodeA->getConnectAction(portIdA, nodeIdB, portIdB, portTypeB),
-         nodeB->getConnectAction(portIdB, nodeIdA, portIdA, portTypeA)
-     };
-}
-
 QUuid NodeGraph::connect(QUuid nodeIdA, QUuid nodeIdB, 
                         PortID portIdA, PortID portIdB, QUuid connectionId)
 {

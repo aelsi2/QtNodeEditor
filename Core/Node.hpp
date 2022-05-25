@@ -10,7 +10,6 @@
 #include "NodeGraph.hpp"
 #include "Connection.hpp"
 #include "HelperTypes.hpp"
-#include "ConnectAction.hpp"
 
 class NodeGraph;
 class Connection;
@@ -22,17 +21,15 @@ public:
     Node(NodeGraph *graph, NodeType type, QPointF position, QUuid uuid);
     Node(NodeGraph *graph, NodeType type);
     
-    bool hasConnections() const;
     void moveTo(QPointF newPosition);
     void addConnection(QUuid connectionId, PortID portId, Connection *connection);
     void removeConnection(QUuid connectionId, PortID portId);
-    void removeConnection(QUuid connectionId); //Should only be used before the connection object gets deleted
     
+    bool hasConnections() const;
+    virtual bool isConnectedTo(QUuid otherNodeId, PortID otherPortId, PortID portId) const;
     virtual PortDataType getPortDataType(PortID portId) const;
     virtual QUuid getPortConnection(PortID portId) const;
     
-    virtual bool connectable(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const; //Default implementation relies on getConnect5Action(...)
-    virtual ConnectAction getConnectAction(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const;
     virtual void serializeData(QJsonValue &json) const;
     virtual void restoreData(const QJsonValue &json);
     

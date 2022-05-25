@@ -4,7 +4,7 @@ const ConnectionDragAction ConnectionDragAction::New = ConnectionDragAction{Conn
 const ConnectionDragAction ConnectionDragAction::None = ConnectionDragAction{ConnectionDragAction::Type::None, QUuid()};
 ConnectionDragAction ConnectionDragAction::ModifyExisting(QUuid uuid) { return ConnectionDragAction{ConnectionDragAction::Type::ModifyExisting, uuid}; }
 
-GraphEditor::GraphEditor(NodeGraph *nodeGraph, QUndoStack *undoStack, QClipboard *clipboard)
+GraphEditor::GraphEditor(NodeGraph * nodeGraph, QUndoStack * undoStack, QClipboard * clipboard)
     : graph(nodeGraph), undoStack(undoStack), clipboard(clipboard) {}
 
 void GraphEditor::selectNode(QUuid nodeId)
@@ -114,7 +114,12 @@ void GraphEditor::pasteClipboard()
 
 bool GraphEditor::getConnectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const
 {
-    return graph->connectable(nodeIdA, nodeIdB, portIdA, portIdB);
+    if (portIdA.direction == portIdB.direction) return false;
+    Node * nodeA = graph->getNode(nodeIdA);
+    Node * nodeB = graph->getNode(nodeIdB);
+    if (nodeA == nullptr || nodeB == nullptr) return false;
+    if (nodeA->getPortDataType(portIdA) != nodeB->getPortDataType(portIdB)) return false;
+    return true;
 }
 ConnectionDragAction GraphEditor::getDragAction(QUuid nodeId, PortID portId) const
 {   
@@ -126,33 +131,35 @@ ConnectionDragAction GraphEditor::getDragAction(QUuid nodeId, PortID portId) con
     return ConnectionDragAction::ModifyExisting(connection);
 }
 
-void GraphEditor::performConnectAction(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB)
+void GraphEditor::connect(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB)
 {
-    ConnectAction::Pair actions = graph->getConnectActions(nodeIdA, nodeIdB, portIdA, portIdB);
-    
-    if (actions.first.createNew && actions.second.createNew)
+    if (portIdA.direction != PortDirection::INOUT && portIdA.direction == portIdB.direction) return;
+    Node * nodeA = graph->getNode(nodeIdA);
+    Node * nodeB = graph->getNode(nodeIdB);
+    if (nodeA == nullptr || nodeB == nullptr) return;
+    if (nodeA->isConnectedTo(nodeIdB, portIdB, portIdA))
     {
-        undoStack->beginMacro("Connect");
-        if (actions.first.disconnectExisting)
-        {
-            undoStack->push(new ConnectUndoCommand(graph, actions.first.connectionToDelete));
-        }
-        if (actions.first.disconnectExisting &&
-            actions.first.connectionToDelete != actions.second.connectionToDelete)
-        {
-            undoStack->push(new ConnectUndoCommand(graph, actions.second.connectionToDelete));
-        }
-        undoStack->push(new ConnectUndoCommand(graph, nodeIdA, nodeIdB, portIdA, portIdB));
-        undoStack->endMacro();
+        doDeleteConnection(nodeA->getPortConnection(portIdA));
+        return;
     }
-    else if (actions.first.disconnectExisting && actions.second.disconnectExisting &&
-             actions.first.connectionToDelete == actions.second.connectionToDelete)
-    {
-        undoStack->push(new ConnectUndoCommand(graph, actions.first.connectionToDelete));
-    }
+    beginMacro("Connect nodes");
+    if (portIdA.direction == PortDirection::IN) doDeleteConnection(nodeA->getPortConnection(portIdA));
+    else if (portIdB.direction == PortDirection::IN)  doDeleteConnection(nodeB->getPortConnection(portIdB));
+    doCreateConnection(nodeIdA, nodeIdB, portIdA, portIdB);
+    endMacro();
 }
 
-void GraphEditor::getConnectionsBetween(QSet<QUuid> const &nodes, QSet<QUuid> &connections)
+void GraphEditor::removeConnections(QVector<QUuid> const & connectionIds)
+{
+    beginMacro("Disconnect multiple");
+    for (auto i = connectionIds.cbegin(); i != connectionIds.cend(); ++i)
+    {
+        doDeleteConnection(*i);
+    }
+    endMacro();
+}
+
+void GraphEditor::getConnectionsBetween(QSet<QUuid> const & nodes, QSet<QUuid> & connections)
 {
     for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
     {
@@ -172,7 +179,7 @@ void GraphEditor::getConnectionsBetween(QSet<QUuid> const &nodes, QSet<QUuid> &c
         }
     }
 }
-void GraphEditor::beginMacro(QString const &name)
+void GraphEditor::beginMacro(QString const & name)
 {
     undoStack->beginMacro(name);
 }
@@ -200,7 +207,7 @@ void GraphEditor::doMoveNode(QUuid uuid, QPointF newPos, bool relative)
 {
     undoStack->push(new NodeMoveUndoCommand(graph, uuid, newPos, relative));
 }
-void GraphEditor::setClipboard(const QString &text)
+void GraphEditor::setClipboard(const QString & text)
 {
     clipboard->setText(text);
 }

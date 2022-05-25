@@ -36,13 +36,15 @@ void Node::removeConnection(QUuid connectionId, PortID portId)
     onConnectionRemoved(connectionId, portId);
 }
 
-void Node::removeConnection(QUuid connectionId)
+bool Node::isConnectedTo(QUuid otherNodeId, PortID otherPortId, PortID portId) const
 {
-    if (!connections.contains(connectionId)) return;
-    Connection *connection = connections.value(connectionId);
-    PortID portId = connection->getThisPort(uuid);
-    connections.remove(connectionId);
-    onConnectionRemoved(connectionId, portId);
+    for (auto i = connections.constBegin(); i != connections.constEnd(); i++)
+    {
+        Connection * conn = i.value();
+        if (!conn->contains(uuid, portId)) continue;
+        if (conn->contains(otherNodeId, otherPortId)) return true;
+    }
+    return false;
 }
 
 PortDataType Node::getPortDataType(PortID portId) const
@@ -58,24 +60,6 @@ QUuid Node::getPortConnection(PortID portId) const
         if (i.value()->getThisPort(uuid) == portId) return i.key();
     }
     return QUuid();
-}
-
-bool Node::connectable(PortID portId,
-                       QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const
-{
-    return getConnectAction(portId, otherNodeId, otherPortId, otherdataType) != ConnectAction::Nothing;
-}
-
-ConnectAction Node::getConnectAction(PortID portId, QUuid otherNodeId, PortID otherPortId, PortDataType otherdataType) const
-{
-    //Go through all the connections associated with this node
-    for (auto i = connections.constBegin(); i != connections.constEnd(); i++)
-    {
-        //If there already is a connection between the given ports, request a deletion
-        if (i.value()->contains(uuid, portId) && i.value()->contains(otherNodeId, otherPortId)) return ConnectAction::Disconnect(i.key());
-    }
-    //If there are no such connections, check the port types; if they match, request a connection or reject action if they don't 
-    return getPortDataType(portId) == otherdataType ? ConnectAction::Connect : ConnectAction::Nothing;
 }
 
 void Node::onConnectionAdded(QUuid connectionId, PortID portId, Connection *connection)

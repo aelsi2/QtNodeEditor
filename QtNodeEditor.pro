@@ -12,7 +12,6 @@ SOURCES += \
     Controller/GraphEditor.cpp \
     Controller/Serialization.cpp \
     Controller/UndoCommands.cpp \
-    Core/ConnectAction.cpp \
     Core/Connection.cpp \
     Core/HelperTypes.cpp \
     Core/Node.cpp \
@@ -31,7 +30,6 @@ HEADERS += \
     Controller/GraphEditor.hpp \
     Controller/Serialization.hpp \
     Controller/UndoCommands.hpp \
-    Core/ConnectAction.hpp \
     Core/Connection.hpp \
     Core/HelperTypes.hpp \
     Core/Node.hpp \

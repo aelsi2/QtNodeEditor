@@ -155,5 +155,5 @@ QJsonDocument SerializedGraph::jsonDocument() const
 
 QString SerializedGraph::toString() const
 {
-    return jsonDocument().toJson(QJsonDocument::Compact);
+    return jsonDocument().toJson(QJsonDocument::Indented);
 }
