@@ -112,6 +112,35 @@ void GraphEditor::pasteClipboard()
     endMacro();
 }
 
+void GraphEditor::duplicateSelection()
+{
+    QSet<QUuid> nodes;
+    QSet<QUuid> connections;
+    QMap<QUuid, QUuid> nodeUuidLookup;
+    nodes = selection;
+    getConnectionsBetween(selection, connections);
+    clearSelection();
+    beginMacro("Duplicate selection");
+    for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
+    {
+        QUuid newUuid = QUuid::createUuid();
+        Node * node = graph->getNode(*i);
+        doCreateNode(node, newUuid);
+        nodeUuidLookup.insert(node->getUuid(), newUuid);
+        selectNode(newUuid);
+    }
+    for (auto i = connections.cbegin(); i != connections.cend(); ++i)
+    {
+        Connection * connection = graph->getConnection(*i);
+        QUuid nodeIdA = nodeUuidLookup.value(connection->getFirstNodeId(), connection->getFirstNodeId());
+        QUuid nodeIdB = nodeUuidLookup.value(connection->getSecondNodeId(), connection->getSecondNodeId());
+        PortID portIdA = connection->getFirstPort();
+        PortID portIdB = connection->getSecondPort();
+        doCreateConnection(nodeIdA, nodeIdB, portIdA, portIdB);
+    }
+    endMacro();
+}
+
 bool GraphEditor::getConnectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const
 {
     if (portIdA.direction == portIdB.direction) return false;
@@ -159,6 +188,11 @@ void GraphEditor::removeConnections(QVector<QUuid> const & connectionIds)
     endMacro();
 }
 
+NodeChangeContext GraphEditor::beginNodeStateChange(QUuid nodeId) const
+{
+    return NodeChangeContext(graph, undoStack, nodeId);
+}
+
 void GraphEditor::getConnectionsBetween(QSet<QUuid> const & nodes, QSet<QUuid> & connections)
 {
     for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
@@ -187,9 +221,22 @@ void GraphEditor::endMacro()
 {
     undoStack->endMacro();
 }
+void GraphEditor::doCreateNode(const Node *prototype, QUuid uuid)
+{
+    if (prototype == nullptr) return;
+    QPointF pos = prototype->getPosition();
+    NodeType type = prototype->type;
+    QJsonValue data;
+    prototype->serializeData(data);
+    doCreateNode(type, pos, data, uuid);
+}
 void GraphEditor::doCreateNode(NodeType type, QPointF position, QUuid uuid)
 {
     undoStack->push(new NodeCreateUndoCommand(graph, type, position, uuid));
+}
+void GraphEditor::doCreateNode(NodeType type, QPointF position, QJsonValue const & data, QUuid uuid)
+{
+    undoStack->push(new NodeCreateUndoCommand(graph, type, position, data, uuid));
 }
 void GraphEditor::doDeleteNode(QUuid uuid)
 {

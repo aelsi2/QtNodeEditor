@@ -45,7 +45,6 @@ int main(int argc, char *argv[])
     QUuid uuid3 = editor->createNode(0, QPointF(5, 6.3));
     editor->connect(uuid, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
     editor->connect(uuid3, PortID(PortDirection::IN, 0), uuid2, PortID(PortDirection::OUT, 0));
-
     editor->selectNode(uuid);
     editor->selectNode(uuid2);
     editor->selectNode(uuid3);

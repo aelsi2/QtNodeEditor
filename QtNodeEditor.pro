@@ -10,6 +10,7 @@ CONFIG += c++11
 
 SOURCES += \
     Controller/GraphEditor.cpp \
+    Controller/NodeChangeContext.cpp \
     Controller/Serialization.cpp \
     Controller/UndoCommands.cpp \
     Core/Connection.cpp \
@@ -28,6 +29,7 @@ SOURCES += \
 
 HEADERS += \
     Controller/GraphEditor.hpp \
+    Controller/NodeChangeContext.hpp \
     Controller/Serialization.hpp \
     Controller/UndoCommands.hpp \
     Core/Connection.hpp \

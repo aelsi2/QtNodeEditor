@@ -12,6 +12,7 @@
 #include "UndoCommands.hpp"
 #include "Core/HelperTypes.hpp"
 #include "Serialization.hpp"
+#include "NodeChangeContext.hpp"
 
 struct ConnectionDragAction
 {
@@ -43,6 +44,7 @@ public:
     virtual void cutSelection();
     virtual void copySelection();
     virtual void pasteClipboard();
+    virtual void duplicateSelection();
     
     virtual bool getConnectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const;
     virtual ConnectionDragAction getDragAction(QUuid nodeId, PortID portId) const;
@@ -50,12 +52,16 @@ public:
     virtual void connect(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB);
     virtual void removeConnections(QVector<QUuid> const & connectionIds);
     
+    NodeChangeContext beginNodeStateChange(QUuid nodeId) const;
+    
 protected:
     
     void getConnectionsBetween(QSet<QUuid> const & nodes, QSet<QUuid> & connections);
     void beginMacro(QString const & name);
     void endMacro();
+    void doCreateNode(Node const * prototype, QUuid uuid);
     void doCreateNode(NodeType type, QPointF position, QUuid uuid);
+    void doCreateNode(NodeType type, QPointF position, QJsonValue const & data, QUuid uuid);
     void doCreateConnection(QUuid nodeIdA, QUuid nodeIdB, PortID portIdA, PortID portIdB);
     void doDeleteNode(QUuid uuid);
     void doDeleteConnection(QUuid uuid);

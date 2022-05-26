@@ -73,3 +73,15 @@ private:
     QPointF oldPos;
     QPointF newPos;
 };
+
+class NodeChangeUndoCommand : public NodeGraphUndoCommand
+{
+public:
+    NodeChangeUndoCommand(NodeGraph * graph, QUuid nodeId, QJsonValue const & oldState, QJsonValue const & newState);
+    void undo() override;
+    void redo() override;
+private:
+    QUuid uuid;
+    QJsonValue oldState;
+    QJsonValue newState;
+};

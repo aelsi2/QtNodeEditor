@@ -127,3 +127,22 @@ void NodeMoveUndoCommand::redo()
 {
     graph->getNode(uuid)->moveTo(newPos);
 }
+
+NodeChangeUndoCommand::NodeChangeUndoCommand(NodeGraph * graph, QUuid nodeId, QJsonValue const & oldState, QJsonValue const & newState)
+    : NodeGraphUndoCommand(graph),
+    uuid(nodeId),
+    oldState(oldState),
+    newState(newState) {}
+
+void NodeChangeUndoCommand::undo()
+{
+    Node * node = graph->getNode(uuid);
+    if (node == nullptr) return;
+    node->restoreData(oldState);
+}
+void NodeChangeUndoCommand::redo()
+{
+    Node * node = graph->getNode(uuid);
+    if (node == nullptr) return;
+    node->restoreData(newState);
+}
