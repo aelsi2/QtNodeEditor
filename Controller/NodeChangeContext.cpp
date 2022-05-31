@@ -8,7 +8,6 @@ NodeChangeContext::NodeChangeContext(NodeGraph * graph, QUndoStack * stack, QUui
     Node * node = graph->getNode(nodeId);
     if (node == nullptr) return;
     node->serializeData(oldState);
-    qDebug() << "Change started";
 }
 
 NodeChangeContext::~NodeChangeContext()
@@ -17,6 +16,5 @@ NodeChangeContext::~NodeChangeContext()
     if (node == nullptr) return;
     QJsonValue newState;
     node->serializeData(newState);
-    qDebug() << "Change ended";
     undoStack->push(new NodeChangeUndoCommand(graph, nodeId, oldState, newState));
 }

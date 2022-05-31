@@ -17,12 +17,12 @@ SOURCES += \
     Core/HelperTypes.cpp \
     Core/Node.cpp \
     Core/NodeFactory.cpp \
+    UI/CirclePort.cpp \
+    UI/GraphView.cpp \
     Utils/Port.cpp \
     Utils/PortPolicy.cpp \
     UI/ConnectionGraphicsItem.cpp \
-    UI/NodeGraphScene.cpp \
     UI/NodeGraphicsItem.cpp \
-    UI/PortGraphics.cpp \
     main.cpp \
     MainWindow.cpp \
     Core/NodeGraph.cpp
@@ -36,12 +36,13 @@ HEADERS += \
     Core/HelperTypes.hpp \
     Core/Node.hpp \
     Core/NodeFactory.hpp \
+    UI/CirclePort.hpp \
+    UI/GraphView.hpp \
     Utils/Port.hpp \
     Utils/PortPolicy.hpp \
     MainWindow.hpp \
     Core/NodeGraph.hpp \
     UI/ConnectionGraphicsItem.hpp \
-    UI/NodeGraphScene.hpp \
     UI/NodeGraphicsItem.hpp \
     UI/PortGraphics.hpp
 

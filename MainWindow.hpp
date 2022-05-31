@@ -4,6 +4,8 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 
+#include "UI/NodeGraphicsItem.hpp"
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT

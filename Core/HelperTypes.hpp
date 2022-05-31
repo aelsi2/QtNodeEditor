@@ -1,6 +1,8 @@
 #pragma once
 
-enum class PortDirection
+#include <QHash>
+
+enum class PortDirection : int
 {
     IN, OUT, INOUT
 };
@@ -18,5 +20,10 @@ struct PortID
     bool operator ==(const PortID &other) const;
     bool operator !=(const PortID &other) const;
 };
+
+inline uint qHash(const PortID &key, uint seed)
+{
+    return qHash(static_cast<int const>(key.direction), seed) ^ qHash(key.index, seed);
+}
 
 typedef int NodeType;

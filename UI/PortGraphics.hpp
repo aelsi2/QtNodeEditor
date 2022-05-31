@@ -2,12 +2,14 @@
 
 #include <QPainter>
 #include <QPointF>
+#include <cmath>
 
 class PortGraphics
 {
 public:
-    PortGraphics();
-    virtual void paint(QPainter *painter, QPointF position) const;
-    virtual bool inside(QPointF point) const;
+    virtual void paint(QPainter *painter) const = 0;
+    virtual bool isInside(QPointF point) const = 0;
+protected:
+    QPointF pos;
 };
 
