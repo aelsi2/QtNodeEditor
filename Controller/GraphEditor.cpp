@@ -7,24 +7,25 @@ ConnectionDragAction ConnectionDragAction::ModifyExisting(QUuid uuid) { return C
 GraphEditor::GraphEditor(NodeGraph * nodeGraph, QUndoStack * undoStack, QClipboard * clipboard)
     : graph(nodeGraph), undoStack(undoStack), clipboard(clipboard) {}
 
-void GraphEditor::selectNode(QUuid nodeId)
+void GraphEditor::doSelectNode(QUuid nodeId)
 {
-    selection.insert(nodeId);
+    emit requestSelect(nodeId);
 }
 
-void GraphEditor::deselectNode(QUuid nodeId)
+void GraphEditor::doDeselectNode(QUuid nodeId)
 {
-    selection.remove(nodeId);
+    emit requestDeselect(nodeId);
 }
 
-void GraphEditor::clearSelection()
+void GraphEditor::doClearSelection()
 {
-    selection.clear();
+    emit requestClearSelection();
 }
 
-void GraphEditor::moveSelection(QPointF delta)
+void GraphEditor::move(NodeCollection const &nodes, QPointF delta)
 {
-    for (auto i = selection.cbegin(); i != selection.cend(); ++i) {
+    QSet<QUuid> nodesCopy = nodes;
+    for (auto i = nodesCopy.cbegin(); i != nodesCopy.cend(); ++i) {
         doMoveNode(*i, delta);
     }
 }
@@ -36,27 +37,29 @@ QUuid GraphEditor::createNode(NodeType type, QPointF position)
     return uuid;
 }
 
-void GraphEditor::deleteSelection()
+void GraphEditor::deleteNodes(NodeCollection const &nodes)
 {
+    QSet<QUuid> nodesCopy = nodes;
     QSet<QUuid> connections;
-    getConnectionsBetween(selection, connections);
+    getConnectionsBetween(nodesCopy, connections);
     beginMacro("Delete selection");
     for (auto i = connections.cbegin(); i != connections.cend(); ++i)
     {
         doDeleteConnection(*i);
     }
-    for (auto i = selection.cbegin(); i != selection.cend(); ++i)
+    for (auto i = nodesCopy.cbegin(); i != nodesCopy.cend(); ++i)
     {
         doDeleteNode(*i);
     }
     endMacro();
-    clearSelection();
+    doClearSelection();
 }
 
-void GraphEditor::cutSelection()
+void GraphEditor::cut(NodeCollection const &nodes)
 {
+    QSet<QUuid> nodesCopy = nodes; //Copy nodes to a new QSet to prevent errors from items being deselected while the method is executing
     QSet<QUuid> connections;
-    getConnectionsBetween(selection, connections);
+    getConnectionsBetween(nodesCopy, connections);
     auto jsonGraph = SerializedGraph();
     undoStack->beginMacro("Cut selection");
     for (auto i = connections.cbegin(); i != connections.cend(); ++i)
@@ -64,27 +67,27 @@ void GraphEditor::cutSelection()
         jsonGraph.addConnection(*graph, *i);
         undoStack->push(new ConnectUndoCommand(graph, *i));
     }
-    for (auto i = selection.cbegin(); i != selection.cend(); ++i)
+    for (auto i = nodesCopy.cbegin(); i != nodesCopy.cend(); ++i)
     {
         jsonGraph.addNode(*graph, *i);
         undoStack->push(new NodeDeleteUndoCommand(graph, *i));
     }
     undoStack->endMacro();
-    clearSelection();
+    doClearSelection();
     setClipboard(jsonGraph.toString());
 }
 
-void GraphEditor::copySelection()
+void GraphEditor::copy(NodeCollection const &nodes)
 {
     QSet<QUuid> connections;
-    getConnectionsBetween(selection, connections);
+    getConnectionsBetween(nodes, connections);
     auto jsonGraph = SerializedGraph();
     beginMacro("Cut selection");
     for (auto i = connections.cbegin(); i != connections.cend(); ++i)
     {
         jsonGraph.addConnection(*graph, *i);
     }
-    for (auto i = selection.cbegin(); i != selection.cend(); ++i)
+    for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
     {
         jsonGraph.addNode(*graph, *i);
     }
@@ -94,7 +97,7 @@ void GraphEditor::copySelection()
 
 void GraphEditor::pasteClipboard()
 {
-    clearSelection();
+    doClearSelection();
     auto jsonGraph = SerializedGraph(getClipboard());
     QMap<QUuid, QUuid> nodeUuidLookup;
     beginMacro("Paste clipboard");
@@ -102,7 +105,7 @@ void GraphEditor::pasteClipboard()
     {
         auto node = jsonGraph.getNode(i, true, &nodeUuidLookup);
         doCreateNode(node.type, node.pos, node.uuid);
-        selectNode(node.uuid);
+        doSelectNode(node.uuid);
     }
     for (int i = 0; i < jsonGraph.connectionCount(); i++)
     {
@@ -112,22 +115,21 @@ void GraphEditor::pasteClipboard()
     endMacro();
 }
 
-void GraphEditor::duplicateSelection()
+void GraphEditor::duplicate(NodeCollection const &nodes)
 {
-    QSet<QUuid> nodes;
+    QSet<QUuid> nodesCopy = nodes;
     QSet<QUuid> connections;
     QMap<QUuid, QUuid> nodeUuidLookup;
-    nodes = selection;
-    getConnectionsBetween(selection, connections);
-    clearSelection();
+    getConnectionsBetween(nodesCopy, connections);
+    doClearSelection();
     beginMacro("Duplicate selection");
-    for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
+    for (auto i = nodesCopy.cbegin(); i != nodesCopy.cend(); ++i)
     {
         QUuid newUuid = QUuid::createUuid();
         Node * node = graph->getNode(*i);
         doCreateNode(node, newUuid);
         nodeUuidLookup.insert(node->getUuid(), newUuid);
-        selectNode(newUuid);
+        doSelectNode(newUuid);
     }
     for (auto i = connections.cbegin(); i != connections.cend(); ++i)
     {

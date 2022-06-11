@@ -4,8 +4,13 @@ NodeGraphicsItem::NodeGraphicsItem(GraphEditor * editor, Node * node, QUuid uuid
     : editor(editor), node(node), uuid(uuid)
 {
     setFlag(QGraphicsItem::ItemIsMovable);
+    setFlag(QGraphicsItem::ItemIsSelectable);
     size = QPointF(128, 64);
     ports.insert(PortID(PortDirection::OUT, 0), new CirclePort(QPointF(64, 54), 5));
+}
+
+QUuid NodeGraphicsItem::getUuid() {
+    return uuid;
 }
 
 void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

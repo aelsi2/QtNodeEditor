@@ -19,6 +19,7 @@ public:
     NodeGraphicsItem(GraphEditor * editor, Node * node, QUuid uuid);
     
     QPointF getPortPosition(PortID portId);
+    QUuid getUuid();
     
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
     QRectF boundingRect() const override;
