@@ -7,6 +7,7 @@
 #include <QSet>
 #include <QMap>
 #include <QVector>
+#include <QObject>
 
 #include "Core/NodeGraph.hpp"
 #include "UndoCommands.hpp"
@@ -27,8 +28,9 @@ struct ConnectionDragAction
     static ConnectionDragAction ModifyExisting(QUuid uuid);
 };
 
-class GraphEditor
+class GraphEditor : QObject
 {
+    Q_OBJECT
 public:
     GraphEditor(NodeGraph * nodeGraph, QUndoStack * undoStack, QClipboard * clipboard);
     
@@ -53,6 +55,11 @@ public:
     virtual void removeConnections(QVector<QUuid> const & connectionIds);
     
     NodeChangeContext beginNodeStateChange(QUuid nodeId) const;
+    
+signals:
+    void requestSelect(QUuid nodeId);
+    void requestDeselect();
+    void requestClearSelection();
     
 protected:
     

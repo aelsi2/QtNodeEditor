@@ -3,6 +3,7 @@
 #include <QMainWindow>
 #include <QGraphicsView>
 #include <QGraphicsScene>
+#include "UI/GraphView.hpp"
 
 #include "UI/NodeGraphicsItem.hpp"
 
