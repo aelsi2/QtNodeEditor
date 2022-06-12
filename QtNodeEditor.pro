@@ -14,17 +14,21 @@ SOURCES += \
     Controller/Serialization.cpp \
     Controller/UndoCommands.cpp \
     Core/Connection.cpp \
-    Core/HelperTypes.cpp \
+    Common/HelperTypes.cpp \
     Core/Node.cpp \
     Core/NodeFactory.cpp \
+    GraphEditorWindow.cpp \
+    UI/AddNodeWindow.cpp \
+    UI/PortGraphics.cpp \
     UI/CirclePort.cpp \
+    UI/GraphScene.cpp \
     UI/GraphView.cpp \
+    UI/GraphicsFactory.cpp \
     Utils/Port.cpp \
     Utils/PortPolicy.cpp \
     UI/ConnectionGraphicsItem.cpp \
     UI/NodeGraphicsItem.cpp \
     main.cpp \
-    MainWindow.cpp \
     Core/NodeGraph.cpp
 
 HEADERS += \
@@ -33,14 +37,17 @@ HEADERS += \
     Controller/Serialization.hpp \
     Controller/UndoCommands.hpp \
     Core/Connection.hpp \
-    Core/HelperTypes.hpp \
+    Common/HelperTypes.hpp \
     Core/Node.hpp \
     Core/NodeFactory.hpp \
+    GraphEditorWindow.hpp \
+    UI/AddNodeWindow.hpp \
     UI/CirclePort.hpp \
+    UI/GraphScene.hpp \
     UI/GraphView.hpp \
+    UI/GraphicsFactory.hpp \
     Utils/Port.hpp \
     Utils/PortPolicy.hpp \
-    MainWindow.hpp \
     Core/NodeGraph.hpp \
     UI/ConnectionGraphicsItem.hpp \
     UI/NodeGraphicsItem.hpp \

@@ -9,6 +9,7 @@ class PortGraphics
 public:
     virtual void paint(QPainter *painter) const = 0;
     virtual bool isInside(QPointF point) const = 0;
+    QPointF getPos();
 protected:
     QPointF pos;
 };

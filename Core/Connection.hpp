@@ -3,7 +3,7 @@
 #include <QUuid>
 
 #include "Node.hpp"
-#include "HelperTypes.hpp"
+#include "Common/HelperTypes.hpp"
 #include "NodeGraph.hpp"
 
 class Node;

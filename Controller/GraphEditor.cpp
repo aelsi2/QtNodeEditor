@@ -10,16 +10,19 @@ GraphEditor::GraphEditor(NodeGraph * nodeGraph, QUndoStack * undoStack, QClipboa
 void GraphEditor::selectNode(QUuid nodeId)
 {
     selection.insert(nodeId);
+    emit nodeSelected(nodeId);
 }
 
 void GraphEditor::deselectNode(QUuid nodeId)
 {
     selection.remove(nodeId);
+    emit nodeDeselected(nodeId);
 }
 
 void GraphEditor::clearSelection()
 {
     selection.clear();
+    emit selectionCleared();
 }
 
 void GraphEditor::moveSelection(QPointF delta)
@@ -160,7 +163,7 @@ ConnectionDragAction GraphEditor::getDragAction(QUuid nodeId, PortID portId) con
     return ConnectionDragAction::ModifyExisting(connection);
 }
 
-void GraphEditor::connect(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB)
+void GraphEditor::connect(QUuid nodeIdA, QUuid nodeIdB, PortID portIdA, PortID portIdB)
 {
     if (portIdA.direction != PortDirection::INOUT && portIdA.direction == portIdB.direction) return;
     Node * nodeA = graph->getNode(nodeIdA);
@@ -176,6 +179,11 @@ void GraphEditor::connect(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID p
     else if (portIdB.direction == PortDirection::IN)  doDeleteConnection(nodeB->getPortConnection(portIdB));
     doCreateConnection(nodeIdA, nodeIdB, portIdA, portIdB);
     endMacro();
+}
+
+void GraphEditor::disconnect(QUuid connectionId)
+{
+    doDeleteConnection(connectionId);
 }
 
 void GraphEditor::removeConnections(QVector<QUuid> const & connectionIds)

@@ -11,7 +11,7 @@
 
 #include "Core/NodeGraph.hpp"
 #include "UndoCommands.hpp"
-#include "Core/HelperTypes.hpp"
+#include "Common/HelperTypes.hpp"
 #include "Serialization.hpp"
 #include "NodeChangeContext.hpp"
 
@@ -28,12 +28,18 @@ struct ConnectionDragAction
     static ConnectionDragAction ModifyExisting(QUuid uuid);
 };
 
-class GraphEditor : QObject
+class GraphEditor : public QObject
 {
     Q_OBJECT
 public:
     GraphEditor(NodeGraph * nodeGraph, QUndoStack * undoStack, QClipboard * clipboard);
     
+    NodeChangeContext beginNodeStateChange(QUuid nodeId) const;
+    
+    virtual bool getConnectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const;
+    virtual ConnectionDragAction getDragAction(QUuid nodeId, PortID portId) const;
+    
+public slots:
     virtual void selectNode(QUuid nodeId);
     virtual void deselectNode(QUuid nodeId);
     virtual void clearSelection();
@@ -48,18 +54,14 @@ public:
     virtual void pasteClipboard();
     virtual void duplicateSelection();
     
-    virtual bool getConnectable(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB) const;
-    virtual ConnectionDragAction getDragAction(QUuid nodeId, PortID portId) const;
-    
-    virtual void connect(QUuid nodeIdA, PortID portIdA, QUuid nodeIdB, PortID portIdB);
+    virtual void connect(QUuid nodeIdA, QUuid nodeIdB, PortID portIdA, PortID portIdB);
+    virtual void disconnect(QUuid connectionId);
     virtual void removeConnections(QVector<QUuid> const & connectionIds);
     
-    NodeChangeContext beginNodeStateChange(QUuid nodeId) const;
-    
 signals:
-    void requestSelect(QUuid nodeId);
-    void requestDeselect();
-    void requestClearSelection();
+    void nodeSelected(QUuid nodeId);
+    void nodeDeselected(QUuid nodeId);
+    void selectionCleared();
     
 protected:
     

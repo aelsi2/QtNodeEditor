@@ -8,7 +8,7 @@
 
 #include "Node.hpp"
 #include "Connection.hpp"
-#include "HelperTypes.hpp"
+#include "Common/HelperTypes.hpp"
 #include "NodeFactory.hpp"
 
 class Node;

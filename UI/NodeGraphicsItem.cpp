@@ -1,12 +1,69 @@
 #include "NodeGraphicsItem.hpp"
 
-NodeGraphicsItem::NodeGraphicsItem(GraphEditor * editor, Node * node, QUuid uuid)
-    : editor(editor), node(node), uuid(uuid)
+NodeGraphicsItem::NodeGraphicsItem(Node *node, QUuid uuid)
+    : QGraphicsObject(nullptr), node(node), uuid(uuid)
 {
-    setFlag(QGraphicsItem::ItemIsMovable);
+    qDebug() << uuid.toString();
+    setFlag(QGraphicsItem::ItemSendsScenePositionChanges);
     size = QPointF(128, 64);
+    ports.insert(PortID(PortDirection::IN, 0), new CirclePort(QPointF(64, 10), 5));
     ports.insert(PortID(PortDirection::OUT, 0), new CirclePort(QPointF(64, 54), 5));
 }
+
+QUuid NodeGraphicsItem::getUuid() const
+{
+    return uuid;
+}
+
+void NodeGraphicsItem::setNodeSelected(bool selected)
+{
+    nodeIsSelected = selected;
+}
+bool NodeGraphicsItem::getNodeSelected() const
+{
+    return nodeIsSelected;
+}
+
+QPointF NodeGraphicsItem::getPortPositionLocal(PortID portId) const
+{
+    QPointF pos = QPointF(0, 0);
+    if (ports.contains(portId))
+    {
+        pos = ports.value(portId)->getPos();
+    }
+    return pos;
+}
+
+QPointF NodeGraphicsItem::getPortPositionScene(PortID portId) const
+{
+    QPointF localPos = getPortPositionLocal(portId);
+    return mapToScene(localPos);
+}
+
+PortID NodeGraphicsItem::getNearestPortLocal(QPointF point) const
+{
+    PortID portId;
+    float minDistance;
+    bool found = false;
+    for (auto i = ports.cbegin(); i != ports.cend(); ++i)
+    {
+        QPointF delta = i.value()->getPos() - point;
+        float distance = std::sqrt(delta.x() * delta.x() + delta.y() + delta.y());
+        if (!found || distance < minDistance) {
+            found = true;
+            minDistance = distance;
+            portId = i.key();
+        }
+    }
+    return portId;
+}
+
+PortID NodeGraphicsItem::getNearestPortScene(QPointF point) const
+{
+    QPointF localPos = mapFromScene(point);
+    return getNearestPortLocal(localPos);
+}
+
 
 void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
@@ -39,6 +96,10 @@ QRectF NodeGraphicsItem::getRect() const
 
 void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    event->accept();
+    ungrabMouse();
+    
+    GraphView *graphView = getGraphView(event);
     QPointF pos = event->pos();
     PortID port;
     bool isPort = false;
@@ -50,9 +111,26 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             break;
         }
     }
+    
     if (!isPort){
-        QGraphicsItem::mousePressEvent(event);
-        return;
+        if (event->modifiers() & Qt::CTRL)
+            graphView->addToSelection(uuid);
+        else graphView->select(uuid);
+        graphView->beginMove(event->scenePos());
     }
-    ungrabMouse();
+    else {
+        graphView->beginConnection(this, port);
+    }
+    
+}
+
+QVariant NodeGraphicsItem::itemChange(GraphicsItemChange change, const QVariant &value)
+{
+    if (change == GraphicsItemChange::ItemScenePositionHasChanged)
+        emit nodeMoved(value.toPointF());
+}
+
+GraphView * NodeGraphicsItem::getGraphView(QGraphicsSceneMouseEvent *event)
+{
+    return dynamic_cast<GraphView*>(event->widget()->parentWidget());
 }

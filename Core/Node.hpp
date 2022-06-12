@@ -6,10 +6,9 @@
 #include <QJsonValue>
 #include <QVector>
 
-#include "HelperTypes.hpp"
+#include "Common/HelperTypes.hpp"
 #include "NodeGraph.hpp"
 #include "Connection.hpp"
-#include "HelperTypes.hpp"
 
 class NodeGraph;
 class Connection;
