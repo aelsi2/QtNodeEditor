@@ -22,7 +22,7 @@ class GraphScene : public QGraphicsScene
 public:
     GraphScene(GraphicsFactory *factory, NodeGraph *graph, GraphEditor *editor);
     
-    QMap<QUuid, NodeGraphicsItem*> const & getGraphSelection() const;
+    QMap<QUuid, NodeGraphicsItem*> getGraphSelection() const;
     NodeGraphicsItem* getNodeItem(QUuid nodeId) const;
     ConnectionGraphicsItem* getConnectionItem(QUuid connectionId) const;
     

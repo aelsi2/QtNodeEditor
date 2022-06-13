@@ -21,6 +21,8 @@ class NodeGraphicsItem : public QGraphicsObject
 public:
     NodeGraphicsItem(Node *node, QUuid uuid);
     
+    void onPreDelete();
+    
     void setNodeSelected(bool selected);
     bool getNodeSelected() const;
     
@@ -35,6 +37,7 @@ public:
     virtual QRectF boundingRect() const override;
     virtual QPainterPath shape() const override;
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
     
 signals:
@@ -42,11 +45,11 @@ signals:
     
 protected:
     
-    QRectF getRect() const;
+    QRectF getNodeRect() const;
     
     static GraphView* getGraphView(QGraphicsSceneMouseEvent *event);
     
-    bool nodeIsSelected;
+    bool nodeIsSelected = false;
     
     QPointF size;
     Node * node;

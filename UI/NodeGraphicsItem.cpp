@@ -3,11 +3,14 @@
 NodeGraphicsItem::NodeGraphicsItem(Node *node, QUuid uuid)
     : QGraphicsObject(nullptr), node(node), uuid(uuid)
 {
-    qDebug() << uuid.toString();
     setFlag(QGraphicsItem::ItemSendsScenePositionChanges);
     size = QPointF(128, 64);
     ports.insert(PortID(PortDirection::IN, 0), new CirclePort(QPointF(64, 10), 5));
     ports.insert(PortID(PortDirection::OUT, 0), new CirclePort(QPointF(64, 54), 5));
+}
+void NodeGraphicsItem::onPreDelete()
+{
+    prepareGeometryChange();
 }
 
 QUuid NodeGraphicsItem::getUuid() const
@@ -18,6 +21,7 @@ QUuid NodeGraphicsItem::getUuid() const
 void NodeGraphicsItem::setNodeSelected(bool selected)
 {
     nodeIsSelected = selected;
+    update();
 }
 bool NodeGraphicsItem::getNodeSelected() const
 {
@@ -47,14 +51,16 @@ PortID NodeGraphicsItem::getNearestPortLocal(QPointF point) const
     bool found = false;
     for (auto i = ports.cbegin(); i != ports.cend(); ++i)
     {
+        
         QPointF delta = i.value()->getPos() - point;
-        float distance = std::sqrt(delta.x() * delta.x() + delta.y() + delta.y());
+        float distance = std::sqrt(delta.x() * delta.x() + delta.y() * delta.y());
         if (!found || distance < minDistance) {
             found = true;
             minDistance = distance;
             portId = i.key();
         }
     }
+
     return portId;
 }
 
@@ -65,12 +71,21 @@ PortID NodeGraphicsItem::getNearestPortScene(QPointF point) const
 }
 
 
+
 void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option)
     Q_UNUSED(widget)
+    QPen pen = painter->pen();
+    if (nodeIsSelected) pen.setStyle(Qt::DashLine);
+    painter->setPen(pen);
     painter->setRenderHint(QPainter::Antialiasing);
-    painter->drawRoundedRect(getRect(), 5, 5);
+    
+    painter->drawRoundedRect(getNodeRect(), 5, 5);
+    QFontMetrics textMetrics = painter->fontMetrics();
+    QRectF textRect = textMetrics.boundingRect("Node");
+    painter->drawText(QPointF(size.x()/2 - textRect.width()/2, size.y()/2 + textRect.height()/2), "Node");
+    
     for (auto i = ports.cbegin(); i != ports.cend(); ++i)
     {
         i.value()->paint(painter);
@@ -79,17 +94,17 @@ void NodeGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *
 
 QRectF NodeGraphicsItem::boundingRect() const
 {
-    return getRect();
+    return getNodeRect();
 }
 
 QPainterPath NodeGraphicsItem::shape() const
 {
     QPainterPath path;
-    path.addRect(getRect());
+    path.addRect(getNodeRect());
     return path;
 }
 
-QRectF NodeGraphicsItem::getRect() const
+QRectF NodeGraphicsItem::getNodeRect() const
 {
     return QRectF(QPointF(0, 0), size);
 }
@@ -97,7 +112,7 @@ QRectF NodeGraphicsItem::getRect() const
 void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     event->accept();
-    ungrabMouse();
+    
     
     GraphView *graphView = getGraphView(event);
     QPointF pos = event->pos();
@@ -112,22 +127,28 @@ void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         }
     }
     
-    if (!isPort){
-        if (event->modifiers() & Qt::CTRL)
-            graphView->addToSelection(uuid);
-        else graphView->select(uuid);
-        graphView->beginMove(event->scenePos());
-    }
-    else {
+    if (isPort){
+        ungrabMouse();
         graphView->beginConnection(this, port);
     }
-    
+    else {
+        if (event->modifiers() & Qt::CTRL)
+            graphView->addToSelection(uuid);
+        else if (!nodeIsSelected) graphView->select(uuid);
+    }
+}
+void NodeGraphicsItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+{
+    GraphView *graphView = getGraphView(event);
+    ungrabMouse();
+    graphView->beginMove(event->scenePos());
 }
 
 QVariant NodeGraphicsItem::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     if (change == GraphicsItemChange::ItemScenePositionHasChanged)
-        emit nodeMoved(value.toPointF());
+        emit nodeMoved(pos());
+    return QGraphicsItem::itemChange(change, value);
 }
 
 GraphView * NodeGraphicsItem::getGraphView(QGraphicsSceneMouseEvent *event)

@@ -4,7 +4,7 @@ GraphEditorWindow::GraphEditorWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     QMap<QString, NodeType> nodeNames{{"Node", 0}};
-    /*nodeFactory = new NodeFactory();
+    nodeFactory = new NodeFactory();
     graphicsFactory = new GraphicsFactory();
     nodeFactory->addDelegate(0,
                              [](NodeType type, NodeGraph *graph, QPointF position, QUuid uuid)
@@ -14,13 +14,14 @@ GraphEditorWindow::GraphEditorWindow(QWidget *parent)
     graphicsFactory->addNodeDelegate(0,
                             [](NodeType type, QPointF position, Node *node, QUuid uuid)
                             {
-                                return new NodeGraphicsItem(node, uuid);
-                                         
-                            });*/
+                                auto nodeItem = new NodeGraphicsItem(node, uuid);
+                                nodeItem->setPos(position);
+                                return nodeItem;
+                            });
+    
     graph = new NodeGraph(nodeFactory);
     editor = new GraphEditor(graph, &undoStack, QGuiApplication::clipboard());
     graphScene = new GraphScene(graphicsFactory, graph, editor);
-    graphScene->addItem(new NodeGraphicsItem(nullptr, QUuid()));
     graphView = new GraphView(graphScene, editor, nodeNames);
     setCentralWidget(graphView);
     createActions();
@@ -56,12 +57,15 @@ void GraphEditorWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu("File");
     editMenu = menuBar()->addMenu("Edit");
+    nodeMenu = menuBar()->addMenu("Node");
     editMenu->addAction(undoAction);
     editMenu->addAction(redoAction);
     editMenu->addSeparator();
     editMenu->addAction(copySelectionAction);
     editMenu->addAction(cutSelectionAction);
     editMenu->addAction(pasteClipboardAction);
-    nodeMenu = menuBar()->addMenu("Node");
+    editMenu->addSeparator();
+    editMenu->addAction(deleteSelectionAction);
     nodeMenu->addAction(addNodeAction);
+    
 }

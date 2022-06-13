@@ -8,6 +8,7 @@ void GraphView::DragState::unsuspendConnection()
 
 GraphView::GraphView(GraphScene *scene, GraphEditor *editor, QMap<QString, NodeType> const & nodes) : QGraphicsView(scene), editor(editor)
 {
+    //setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     setContextMenuPolicy(Qt::CustomContextMenu);
     graphScene = scene;
     addNodeWindow = new AddNodeWindow(editor, nodes);
@@ -44,8 +45,11 @@ void GraphView::mouseReleaseEvent(QMouseEvent *event)
 {
     switch (dragState.type)
     {
-    case DragState::Type::NodeMove:
+    case DragState::Type::Connection:
         doConnectionDrop(event->position());
+        break;
+    case DragState::Type::NodeMove:
+        endNodeMove(event);
         break;
     }
     resetStateIfNothingPressed(event);
@@ -82,7 +86,6 @@ void GraphView::beginConnection(NodeGraphicsItem *node, PortID portId)
     
     dragState.type = DragState::Type::Connection;
     dragState.suspendConnection = false;
-    
     if (action.type == ConnectionDragAction::Type::ModifyExisting)
     {
         if (auto connection = graphScene->getConnectionItem(action.existingId))
@@ -100,7 +103,7 @@ void GraphView::doNodeMove(QMouseEvent *event)
 {
     if (initialNodePositions.isEmpty())
     {
-        auto selection = graphScene->getGraphSelection();
+        QMap<QUuid, NodeGraphicsItem*> selection = graphScene->getGraphSelection();
         for (auto i = selection.cbegin(); i != selection.cend(); ++i)
         {
             QGraphicsItem *item = i.value();
@@ -116,13 +119,18 @@ void GraphView::doNodeMove(QMouseEvent *event)
     }
 }
 
+void GraphView::endNodeMove(QMouseEvent *event)
+{
+    if (dragState.type != DragState::Type::NodeMove) return;
+    dragState.type = DragState::Type::Idle;
+    initialNodePositions.clear();
+    QPointF mouseScenePos = mapToScene(event->pos());
+    editor->moveSelection(mouseScenePos - dragState.startScenePos);
+}
+
 void GraphView::doConnectionDrop(QPointF viewMousePos)
 {
-    if (dragState.type != DragState::Type::Connection)
-    {
-        dragState.unsuspendConnection();
-        return;
-    }
+    if (dragState.type != DragState::Type::Connection) return;
     dragState.type = DragState::Type::Idle;
     
     QPointF sceneMousePos = mapToScene(viewMousePos.toPoint());
@@ -131,11 +139,7 @@ void GraphView::doConnectionDrop(QPointF viewMousePos)
     NodeGraphicsItem *nodeItemA = dragState.connectionNodeA;
     NodeGraphicsItem *nodeItemB = dynamic_cast<NodeGraphicsItem*>(itemAtMouse);
     
-    if (nodeItemA == nullptr)
-    {
-        dragState.unsuspendConnection();
-        return;
-    }
+    if (nodeItemA == nullptr) return;
     
     if (nodeItemB == nullptr)
     {
@@ -144,15 +148,9 @@ void GraphView::doConnectionDrop(QPointF viewMousePos)
         return;
     }
     
-    if (nodeItemA == nodeItemB)
-    {
-        dragState.unsuspendConnection();
-        return;
-    }
-    
     PortID portIdA = dragState.connectionPortA;
     PortID portIdB = nodeItemB->getNearestPortScene(sceneMousePos);
-    
+
     if (dragState.suspendConnection && dragState.suspendedConnection != nullptr)
     {
         if (dragState.suspendedConnection->isConnectedTo(nodeItemB, portIdB))
@@ -162,7 +160,7 @@ void GraphView::doConnectionDrop(QPointF viewMousePos)
         }
         editor->disconnect(dragState.suspendedConnection->getUuid());
     }
-    
+    if (nodeItemA == nodeItemB) return;
     QUuid nodeIdA = nodeItemA->getUuid();
     QUuid nodeIdB = nodeItemB->getUuid();
     editor->connect(nodeIdA, nodeIdB, portIdA, portIdB);

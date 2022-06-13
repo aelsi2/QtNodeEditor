@@ -65,7 +65,10 @@ signals:
     
 protected:
     
-    void getConnectionsBetween(QSet<QUuid> const & nodes, QSet<QUuid> & connections);
+    void getConnectionsAll(QSet<QUuid> const & nodes, QSet<QUuid> &connections);
+    void getConnectionsBetween(QSet<QUuid> const & nodes, QSet<QUuid>  &connections);
+    void getConnectionsBetweenAndAll(QSet<QUuid> const & nodes, QSet<QUuid> &connectionsBetween, QSet<QUuid> &additionalConnections);
+    
     void beginMacro(QString const & name);
     void endMacro();
     void doCreateNode(Node const * prototype, QUuid uuid);

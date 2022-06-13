@@ -12,9 +12,15 @@ ConnectionGraphicsItem::ConnectionGraphicsItem(
     portIdA(portIdA),
     portIdB(portIdB)
 {
+    lineWidth = 3;
+    setZValue(-100);
     snapToPorts();
     QObject::connect(nodeItemA, &NodeGraphicsItem::nodeMoved, this, &ConnectionGraphicsItem::snapToPorts);
     QObject::connect(nodeItemB, &NodeGraphicsItem::nodeMoved, this, &ConnectionGraphicsItem::snapToPorts);
+}
+void ConnectionGraphicsItem::onPreDelete()
+{
+    prepareGeometryChange();
 }
 
 bool ConnectionGraphicsItem::isConnectedTo(NodeGraphicsItem *nodeItem, PortID portId) const
@@ -39,16 +45,22 @@ void ConnectionGraphicsItem::paint(QPainter *painter, const QStyleOptionGraphics
 {
     Q_UNUSED(option)
     Q_UNUSED(widget)
+    painter->setRenderHint(QPainter::Antialiasing);
     QPen pen = painter->pen();
     pen.setWidth(lineWidth);
+    //painter->drawRect(boundingRect());
+    //painter->drawPath(shape());
     painter->setPen(pen);
     painter->drawLine(startPointLocal(), endPointLocal());
+    
 }
 
 QRectF ConnectionGraphicsItem::boundingRect() const
 {
-    QPointF topLeft = startPointLocal() + QPointF(-lineWidth, -lineWidth);
-    QPointF bottomRight = endPointScene + QPointF(lineWidth, lineWidth);
+    QPointF start = startPointLocal();
+    QPointF end = endPointLocal();
+    QPointF topLeft = QPointF(std::min(start.x(), end.x()), std::min(start.y(), end.y())) + QPointF(-lineWidth, -lineWidth);
+    QPointF bottomRight = QPointF(std::max(start.x(), end.x()), std::max(start.y(), end.y())) + QPointF(lineWidth, lineWidth);
     return QRectF(topLeft, bottomRight);
 }
 
@@ -59,11 +71,11 @@ QPainterPath ConnectionGraphicsItem::shape() const
     float halfWidth = lineWidth / 2;
     
     QPointF lineVector = endPoint - startPoint;
-    float lineVectorDotX = QPointF::dotProduct(lineVector, QPointF(1, 0));
+    float lineVectorDotX = lineVector.x();
     float lineVectorLength = std::sqrt(lineVector.x() * lineVector.x() + lineVector.y() * lineVector.y());
     float lineAngleCos = lineVectorDotX / lineVectorLength;
-    float lineAngleSin = std::sqrt(1 - lineAngleCos);
-    
+    float lineAngleSin = (lineVector.y() < 0 ? 1 : -1) * std::sqrt(1 - lineAngleCos * lineAngleCos);
+
     QPainterPath path;
     path.moveTo(startPoint + QPointF(-lineAngleSin * halfWidth, -lineAngleCos * halfWidth));
     path.lineTo(endPoint + QPointF(-lineAngleSin * halfWidth, -lineAngleCos * halfWidth));
@@ -74,6 +86,7 @@ QPainterPath ConnectionGraphicsItem::shape() const
 
 void ConnectionGraphicsItem::snapToPorts()
 {
+    prepareGeometryChange();
     startPointScene = nodeItemA->getPortPositionScene(portIdA);
     endPointScene = nodeItemB->getPortPositionScene(portIdB);
     update();

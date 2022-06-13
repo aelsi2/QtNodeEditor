@@ -62,7 +62,6 @@ void NodeGraph::disconnect(QUuid connectionId)
     connections.remove(connectionId);
     
     delete connection;
-    
     emit connectionRemoved(connectionId);
 }
 

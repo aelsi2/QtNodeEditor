@@ -50,12 +50,12 @@ protected:
     struct DragState {
         enum class Type {
             Idle, NodeMove, RubberBand, Connection, Pan
-        } type;
+        } type = Type::Idle;
         
         QPointF startScenePos;
         
-        bool suspendConnection;
-        ConnectionGraphicsItem *suspendedConnection;
+        bool suspendConnection = false;
+        ConnectionGraphicsItem *suspendedConnection = nullptr;
         NodeGraphicsItem *connectionNodeA;
         PortID connectionPortA;
         
@@ -64,6 +64,7 @@ protected:
     } dragState; //C go brrrrr
     
     void doNodeMove(QMouseEvent *event);
+    void endNodeMove(QMouseEvent *event);
     void doConnectionDrop(QPointF viewMousePos);
     
     void resetStateIfNothingPressed(QMouseEvent *event);

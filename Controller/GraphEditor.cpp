@@ -27,9 +27,11 @@ void GraphEditor::clearSelection()
 
 void GraphEditor::moveSelection(QPointF delta)
 {
+    beginMacro("Move selection");
     for (auto i = selection.cbegin(); i != selection.cend(); ++i) {
         doMoveNode(*i, delta);
     }
+    endMacro();
 }
 
 QUuid GraphEditor::createNode(NodeType type, QPointF position)
@@ -42,7 +44,7 @@ QUuid GraphEditor::createNode(NodeType type, QPointF position)
 void GraphEditor::deleteSelection()
 {
     QSet<QUuid> connections;
-    getConnectionsBetween(selection, connections);
+    getConnectionsAll(selection, connections);
     beginMacro("Delete selection");
     for (auto i = connections.cbegin(); i != connections.cend(); ++i)
     {
@@ -58,13 +60,18 @@ void GraphEditor::deleteSelection()
 
 void GraphEditor::cutSelection()
 {
-    QSet<QUuid> connections;
-    getConnectionsBetween(selection, connections);
+    QSet<QUuid> connectionsBetween;
+    QSet<QUuid> connectionsAdditional;
+    getConnectionsBetweenAndAll(selection, connectionsBetween, connectionsAdditional);
     auto jsonGraph = SerializedGraph();
     undoStack->beginMacro("Cut selection");
-    for (auto i = connections.cbegin(); i != connections.cend(); ++i)
+    for (auto i = connectionsBetween.cbegin(); i != connectionsBetween.cend(); ++i)
     {
         jsonGraph.addConnection(*graph, *i);
+        undoStack->push(new ConnectUndoCommand(graph, *i));
+    }
+    for (auto i = connectionsAdditional.cbegin(); i != connectionsAdditional.cend(); ++i)
+    {
         undoStack->push(new ConnectUndoCommand(graph, *i));
     }
     for (auto i = selection.cbegin(); i != selection.cend(); ++i)
@@ -165,7 +172,8 @@ ConnectionDragAction GraphEditor::getDragAction(QUuid nodeId, PortID portId) con
 
 void GraphEditor::connect(QUuid nodeIdA, QUuid nodeIdB, PortID portIdA, PortID portIdB)
 {
-    if (portIdA.direction != PortDirection::INOUT && portIdA.direction == portIdB.direction) return;
+    if (portIdA.direction == portIdB.direction) return;
+    
     Node * nodeA = graph->getNode(nodeIdA);
     Node * nodeB = graph->getNode(nodeIdB);
     if (nodeA == nullptr || nodeB == nullptr) return;
@@ -201,6 +209,21 @@ NodeChangeContext GraphEditor::beginNodeStateChange(QUuid nodeId) const
     return NodeChangeContext(graph, undoStack, nodeId);
 }
 
+void GraphEditor::getConnectionsAll(QSet<QUuid> const & nodes, QSet<QUuid> & connections)
+{
+    for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
+    {
+        Node *node = graph->getNode(*i);
+        if (node == nullptr) continue;
+        auto nodeConnections = node->getConnections();
+        for (auto j = nodeConnections.cbegin(); j != nodeConnections.cend(); ++j)
+        {
+            Connection *connection = graph->getConnection(j.key());
+            if (connection == nullptr) continue;
+            connections.insert(j.key());
+        }
+    }
+}
 void GraphEditor::getConnectionsBetween(QSet<QUuid> const & nodes, QSet<QUuid> & connections)
 {
     for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
@@ -218,6 +241,27 @@ void GraphEditor::getConnectionsBetween(QSet<QUuid> const & nodes, QSet<QUuid> &
             {
                 connections.insert(j.key());
             }
+        }
+    }
+}
+void GraphEditor::getConnectionsBetweenAndAll(QSet<QUuid> const & nodes, QSet<QUuid> &connectionsBetween, QSet<QUuid> &additionalConnections)
+{
+    for (auto i = nodes.cbegin(); i != nodes.cend(); ++i)
+    {
+        Node *node = graph->getNode(*i);
+        if (node == nullptr) continue;
+        auto nodeConnections = node->getConnections();
+        for (auto j = nodeConnections.cbegin(); j != nodeConnections.cend(); ++j)
+        {
+            Connection *connection = graph->getConnection(j.key());
+            if (connection == nullptr) continue;
+            
+            if (nodes.contains(connection->getFirstNodeId()) &&
+                nodes.contains(connection->getSecondNodeId()))
+            {
+                connectionsBetween.insert(j.key());
+            }
+            else additionalConnections.insert(j.key());
         }
     }
 }

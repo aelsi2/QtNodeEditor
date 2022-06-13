@@ -14,7 +14,7 @@ GraphScene::GraphScene(GraphicsFactory *factory, NodeGraph *graph, GraphEditor *
 }
 
 
-QMap<QUuid, NodeGraphicsItem*> const & GraphScene::getGraphSelection() const
+QMap<QUuid, NodeGraphicsItem*> GraphScene::getGraphSelection() const
 {
     return selection;
 }
@@ -48,6 +48,7 @@ void GraphScene::nodeDeleted(QUuid uuid)
     NodeGraphicsItem *nodeItem = nodes.value(uuid);
     if (nodeItem == nullptr) return;
     nodes.remove(uuid);
+    nodeItem->onPreDelete();
     removeItem(nodeItem);
     delete nodeItem;
 }
@@ -65,14 +66,17 @@ void GraphScene::connectionMade(QUuid uuid, Connection *connection,
 }
 void GraphScene::connectionRemoved(QUuid uuid)
 {
-    auto connectionItem = connections.value(uuid);
+    //Connections and nodes are stored in QMaps to retrieve them by uuid
+    ConnectionGraphicsItem *connectionItem = connections.value(uuid);
     if (connectionItem == nullptr) return;
-    removeItem(connectionItem);
+    connectionItem->onPreDelete();
+    removeItem(connectionItem); //Delayed
     delete connectionItem;
 }
 
 void GraphScene::nodeSelected(QUuid uuid)
 {
+    
     NodeGraphicsItem *nodeItem = nodes.value(uuid);
     if (nodeItem == nullptr) return;
     selection.insert(uuid, nodeItem);
