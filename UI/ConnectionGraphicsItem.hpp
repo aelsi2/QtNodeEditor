@@ -15,8 +15,6 @@ public:
         PortID portIdA,
         PortID portIdB);
     
-    void onPreDelete();
-    
     bool isConnectedTo(NodeGraphicsItem *nodeItem, PortID portId) const;
     QUuid getUuid() const;
     

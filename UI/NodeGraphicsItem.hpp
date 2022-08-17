@@ -21,8 +21,6 @@ class NodeGraphicsItem : public QGraphicsObject
 public:
     NodeGraphicsItem(Node *node, QUuid uuid);
     
-    void onPreDelete();
-    
     void setNodeSelected(bool selected);
     bool getNodeSelected() const;
     

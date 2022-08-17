@@ -48,7 +48,6 @@ void GraphScene::nodeDeleted(QUuid uuid)
     NodeGraphicsItem *nodeItem = nodes.value(uuid);
     if (nodeItem == nullptr) return;
     nodes.remove(uuid);
-    nodeItem->onPreDelete();
     removeItem(nodeItem);
     delete nodeItem;
 }
@@ -66,11 +65,10 @@ void GraphScene::connectionMade(QUuid uuid, Connection *connection,
 }
 void GraphScene::connectionRemoved(QUuid uuid)
 {
-    //Connections and nodes are stored in QMaps to retrieve them by uuid
     ConnectionGraphicsItem *connectionItem = connections.value(uuid);
     if (connectionItem == nullptr) return;
-    connectionItem->onPreDelete();
-    removeItem(connectionItem); //Delayed
+    connections.remove(uuid);
+    removeItem(connectionItem);
     delete connectionItem;
 }
 

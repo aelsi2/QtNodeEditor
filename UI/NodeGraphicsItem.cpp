@@ -8,10 +8,6 @@ NodeGraphicsItem::NodeGraphicsItem(Node *node, QUuid uuid)
     ports.insert(PortID(PortDirection::IN, 0), new CirclePort(QPointF(64, 10), 5));
     ports.insert(PortID(PortDirection::OUT, 0), new CirclePort(QPointF(64, 54), 5));
 }
-void NodeGraphicsItem::onPreDelete()
-{
-    prepareGeometryChange();
-}
 
 QUuid NodeGraphicsItem::getUuid() const
 {

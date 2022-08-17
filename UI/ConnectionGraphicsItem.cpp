@@ -18,10 +18,6 @@ ConnectionGraphicsItem::ConnectionGraphicsItem(
     QObject::connect(nodeItemA, &NodeGraphicsItem::nodeMoved, this, &ConnectionGraphicsItem::snapToPorts);
     QObject::connect(nodeItemB, &NodeGraphicsItem::nodeMoved, this, &ConnectionGraphicsItem::snapToPorts);
 }
-void ConnectionGraphicsItem::onPreDelete()
-{
-    prepareGeometryChange();
-}
 
 bool ConnectionGraphicsItem::isConnectedTo(NodeGraphicsItem *nodeItem, PortID portId) const
 {
@@ -89,7 +85,6 @@ void ConnectionGraphicsItem::snapToPorts()
     prepareGeometryChange();
     startPointScene = nodeItemA->getPortPositionScene(portIdA);
     endPointScene = nodeItemB->getPortPositionScene(portIdB);
-    update();
 }
 
 QPointF ConnectionGraphicsItem::startPointLocal() const
